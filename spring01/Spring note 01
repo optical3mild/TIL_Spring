@@ -1,0 +1,238 @@
+[1. Spring 개발환경 설정]
+
+ 1.Spring : jsp 기술중의 하나
+ 2.툴: 이클립스 + 스프링 플러그인 or STS or InteilJ(안드로이드)
+ 
+ 3.Spring 디렉토리 구조
+ 	pom.xml - Maven 설정파일.
+	src/main/java - 자바 코드 (Controller, Model, Service)
+	src/main/resources - 자바코드에서 참조하는 리소스 파일들 : sqlMapConfig.xml, **MyBatis의 Mapper.
+
+	src/test/java - 테스트 관련 코드
+	src/test/resources - 테스트 코드에서 참조하는 리소스 파일들
+	
+	
+	src/main/webapp - 웹서비스 루트 디렉토리(외부에서 접근가능)
+	src/main/webapp/resources - js,css,image 등의 웹리소스 파일
+	
+	src/main/webapp/WEB-INF/classes - 컴파일된 클래스
+	src/main/webapp/WEB-INF/spring - 스프링의 환경설정파일
+	
+	src/main/webapp/WEB-INF/spring/root-context.xml - 서블릿과 관련되지 않은 모든 리소스에 대한 설정
+	src/main/webapp/WEB-INF/spring/servlet-context.xml - 서블릿과 관련된 리소스에 대한 설정
+	
+	src/main/webapp/WEB-INF/views - html, jsp 페이지
+	src/main/webapp/WEB-INF - 외부에서 접근 불가능(보안을 위해서). 컨트롤러를 경유해 접근 가능.
+	
+	pom.xml - 메이븐에서 참조하는 설정파일.
+
+--------------------------------------------------------------------	 				
+**Service
+Controller => Service => Model => View
+ 
+ *동영상 1번 6:00
+"게시물 작성, 포인트 부여"
+ -> 트랜젝션 처리의 경우 : Service
+
+**JUnit
+개발완료 => 테스트 => 납품 => 검수
+
+**Maven 빌드 도구
+
+	
+**MyBatis
+ : MyBatis는 자바 퍼시스턴스 프레임워크의 하나로 XML 서술자나 애너테이션(annotation)을 사용하여
+   저장 프로시저나 SQL 문으로 객체들을 연결시킨다.
+   마이바티스는 아파치 라이선스 2.0으로 배포되는 자유 소프트웨어이다.
+   마이바티스는 IBATIS 3.0의 포크이며 IBATIS의 원 개발자들이 포함된 팀에 의해 유지보수되고 있다.
+   
+**Service
+Controller => Service => Model => View
+ 
+ *동영상 1번 6:00
+"게시물 작성, 포인트 부여"
+ -> 트랜젝션 처리의 경우 : Service
+
+**JUnit
+개발완료 => 테스트 => 납품 => 검수
+
+**Maven 빌드 도구
+pom.xml : Maven 설정파일	
+---------------------------------------------------------------------
+	
+		
+ 4. 스프링의 주요 특징.
+ 	-POJO(Plain Old Java Object) 기반의 구성 : 별도의 API가 필요하지 않은 일반적인 자바 코드를 이용하여 개발 가능.
+ 	-의존성 주입(DI)을 통한 객체간의 관계 구성.
+ 	-AOP(Aspect Oriented Programming)지원 : 반복적인 코드를 줄이고 개발자가 비즈니스 로직에만 집중할 수 있도록 지원함.
+ 	-편리한 MVC구조
+ 	-WAS(Web Appilcation Server - tomcat 등)에 종속적이지 않은 개발환경.
+ 	
+ 	1)IoC (Inversion of Control, 제어의 역전) - 객체에 대한 제어권
+ 		-기존에는 개발자에게 제어권이 있었음.(new 연산자)
+ 		-인스턴스의 라이프 사이클(생성부터 소멸까지)을 개발자가 아닌 스프링 프레임워크가 담당.
+ 	
+ 	2)DI(Dependency Injection, 의존관계 주입)
+ 		-객체간의 의존성을 개발자가 설정하는 것이 아닌 스프링컨테이너가 주입시켜 주는 기능.
+ 		-객체를 쉽게 확장하고 재사용할 수 있음.
+ 		
+ 		1> 의존관계
+ 			B의 코드가 변경되면 A의 코드도 변경되는 경우
+ 			--> A와 B는 의존관계에 있다.
+ 			--> A는 B에 의존한다.
+ 			
+ 			A:코드변경 발생 --> B:유연한 확장이 어려움.
+ 			
+ 			강한 결합과 느슨한 결합
+ 			-->B의 코드 변경이 A에 영향을 끼치지 않도록 느슨하게 설계
+ 			A:코드변경 불필요 --> B:유연한 확장이 가능함. 핵심기능의 변경이 쉬워짐.
+ 			
+ 			강한 결합은 (결합도가 높으면) 유지보수를 어렵게 함.
+ 			-->한곳의 수정이 다른곳에 영향을 끼침.
+ 			
+ 		2> 강한결합관계와 느슨한 결합관계
+ 			-강한결합
+ 				class MemberUse {
+ 					public MemberUse() {
+ 						Member m = new Member();
+ 					}	
+ 				}
+ 				public class Member {
+ 					String userid;
+ 					String passwd;
+ 					String name;
+ 					private Member() {
+ 					}	
+ 				}
+ 				--> 생성자가 private로 바뀌면 MemberUse 클래스도 수정해야 함.
+ 			
+ 			-느슨한 결합
+ 				class MemberUse() {
+ 					public MemberUse(Member m) {
+ 					}
+ 				}	
+				public class Member {
+					String userid;
+					String passwd;
+					String name;
+					private Member(){};
+				} 				
+ 				--> 매개변수로 Member 객체를 받음으로써 생성자가 private로 바뀌어도 영향을 받지 않음.
+ 				--> Member 객체는 스프링에서 의존성 주입을 통해 생성하여 넣어주고 관리한다.(IoC, DI)
+ 				
+**Spring starter project : Spring Boot로 설정이 거의 없고, 코딩만으로 작업.
+**Spring Legarcy project : 실무에서 많이 사용.
+**Spring 3점대 버전 사용
+
+Spring Legacy project --> Spring MVC project
+	project name : 형식?;;;
+	package name : com.naver.test 등의 형식
+
+
+
+[2. 스프링 개발환경 설정, 스프링의 실행과정]
+
+1. STS 기본설정
+
+ - 기본 인코딩을 utf-8로 변경
+	1> General - Workspace - Text File Encoding 속성을 UTF-8로 변경.
+	2> General - Editors - Text Editors - Spelling - Encoding 속성을 UTF-8로 변경.
+	
+ - html/css/jsp의 인코딩을 utf-8로 변경.
+ 	: Web - CSS Files, HTML Files, JSP Files Encoding을 UTF-8로 변경.
+ 	
+ - jsp 페이지의 템플릿 변경.
+ 	: Window - Preferences - Web - JSP Files - Editor - Templates - New JSP File(html) 선택 후 - Edit
+ 	
+ 	<%@ page language="java" contentType="text/html; charset=${encoding}" pageEncoding="${encoding}"%>
+ 	<!DOCTYPE html> --> html5 형식.
+ 	...
+
+---------------------------------------------------------------------------------------------------------
+** Maven : 빌드 툴.
+	- c:\User\사용자 계정\.m2 : 메이븐의 기본 라이브러리 디렉토리. 메이븐에서 관리하는 jar파일들이 저장된 위치.
+	- WebContent/WEB-INF/lib : 이클립스에서 빌드 툴 없이 사용했을 경우 jar파일 위치.
+	
+	- 빌드문제 발생한 경우,
+	  1> 새로 라이브러리 다운로드 
+	    : 기본 라이브러리 폴더에서 문제되는 라이브러리 폴더 삭제 - 프로젝트 우클릭 - maven - update project
+	    --> 해당 프로젝트 선택, 아래 update project configuration from pom.xml 선택.
+      2> pom.xml 소스확인 - 각 버전 정보 확인.
+	  3> project property에서 project facets의 java버전 확인. (pom.xml의 버전과 일치하도록 수정.)
+	  4> 다시 메이븐 업데이트
+	  ** 안되는 경우, sts종료 후 m2폴더 삭제하고 다시 sts를 실행하여 빌드.
+--------------------------------------------------------------------------------------------------------
+
+2. spring01 프로젝트 생성
+
+ - Spring Legacy Project -> spring MVC project
+ - 메이븐 라이브러리 : 사용자/.m2 디렉토리 확인.
+ - jdk 버전 수정 : project facets, java compiler 버전확인.
+ - spring 버전 변경 : pom.xml 수정 두군데
+ 	<java-version>1.8</java-version>
+ 	<org.springframework-version>5.0.3.RELEASE</org.springframework-version>
+    (****에러가 발생하는 경우, 하위버전으로 설정.) 	
+
+ - *여기까지는 한글이 출력되지는 않음.
+
+ - sample project에서 설정 복사.
+	1> pom.xml
+	2> resources 디렉토리 - 이하 전체
+	3> WEB-INF 디렉토리 - servlet-context.xml, root-context.xml, web.xml
+
+ - project의 java build path 설정에서 tomcat 라이브러리 설정.
+
+ - dto관련 에러 발생 --> memoMapper.xml 삭제. (해당 dto없음.)
+ - mapping 불일치로 404에러 
+ 	: [http-nio-8080-exec-2] WARN [org.springframework.web.servlet.PageNotFound.noHandlerFound:1205]-
+				No mapping found for HTTP request with URI [/spring01/] in DispatcherServlet with name 'appServlet'
+	--> spring-context.xml에서 <context:component-scan base-package="com.example.sample.*" /> 항목의 base-package를
+		존재하는 controller의 package경로로 수정하거나(단일), "com.example.*" 처럼 모든 package로 설정.
+
+ - 한글설정 - 해당 jsp페이지 지시어 수정, meta tag 추가. (jsp파일을 새로 생성하여 내용참조.)
+
+
+ **spring01의 index인 home.jsp 실행과정.
+ 	1> web.xml : 웹 프로젝트의 배치 기술서(deploy descriptor) - 웹 프로젝트의 환경설정 파일.
+ 	2> /WEB-INF/spring/root-context.xml : 스프링의 환경설정 파일.
+ 	
+ 	3> /WEB-INF/spring/appServlet/servlet-context.xml : 서블릿 환경설정 파일
+ 		- web.xml에서 스프링에 내장된 DispatcherServlet을 디폴트 서블릿으로 설정.
+ 		- 모든 서블릿 요청은 DispatcherServlet이 요청을 가로채어 처리.
+ 		  ( 서버 시작 -> url요청(/) -> DispatcherServlet 실행되어 요청을 처리. )
+ 		- DispatcherServlet안에는 servlet-context.xml을 참조하는 로직이 작성되어 있음.
+		- /WEB-INF/spring/appServlet/servlet-context.xml참조, xml에 정의된 객체들을 로딩함.
+		- servlet-context.xml
+		  > InternalResourceViewResolver :
+		  > context:component-scan의 base-package : 설정되어 있는 패키지의 클래스들을 읽어들여 메모리에 탑재.
+		    --> Controller annotation이 있는 클래스들을 검색(?)
+	4> HomeController.java 로딩.
+		- @Controller : 현재 클래스를 스프링에서 관리하는 컨트롤러로 등록. 
+			(초기버전에서는 servlet-context.xml에 bean으로 컨트롤러 개별 등록하였으나, 지금은 사용x - 클래스참조.)
+		- @RequestMapping(value = "/", method = RequestMethod.GET)
+		  : get방식으로 '/' url요청 (get으로 설정되어 있으므로 post방식으로는 호출이 안되는 url.)
+		  ex> 전체 사이트 : http://localhost/spring01/
+		  	> http://localhost/ : 포트번호 생략한 ip
+		  	> spring01 : context path.
+		  	> / : 해당 site에 요청하는 url
+		- return "home";
+			> servlet-context.xml의 InternalResourceViewResolver에 정의되어 있는 접두, 접미를 붙여 경로 생성
+			> 해당 경로의 서블릿 요청(해당경로로 포워딩).
+
+****spring02 55:00 설정관련 설명.
+
+
+**정리 -----------------------------------------------------------------------------------------------------------
+
+1> 서버 startup -->  web.xml --> DispatcherServlet --> servlet-context.xml (컨트롤러 등록 / url mapping)
+ 
+2> url 요청 (~/) --> HomeController.java의 home() 실행 --> 코드 실행 후 home으로 포워드(return "home")
+ --> DispatcherServlet이 다시 요청 가로챔(?) --> servlet-context.xml의 ViewResolver에 정의된 접두 접미로 요청완성
+ --> 해당 경로로 포워딩
+ 	
+ 				
+ 					
+ 				
+ 				
+ 		
+ 			
