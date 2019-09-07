@@ -22,7 +22,9 @@
 		<beans:property name="prefix" value="/WEB-INF/views/" />
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
-	<!-- 스프링 빈을 태그로 등록하지 않고 자동으로 검색(auto scan) --> 
+	
+	<!-- 스프링 빈을 태그로 등록하지 않고 자동으로 검색(auto scan) -->
+	<!-- 스프링에서 관리하는 bean(자바 클래스의 인스턴스)의 기본 디렉토리. -->
 	<context:component-scan base-package="com.example.spring01" />
 	
 	<!-- 스프링 초기버전 컨트롤러 등록법 : 어노테이션 없이 설정으로 등록. 현재 사용x -->

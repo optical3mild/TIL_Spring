@@ -189,8 +189,9 @@ Spring Legacy project --> Spring MVC project
 	--> spring-context.xml에서 <context:component-scan base-package="com.example.sample.*" /> 항목의 base-package를
 		존재하는 controller의 package경로로 수정하거나(단일), "com.example.*" 처럼 모든 package로 설정.
 
- - 한글설정 - 해당 jsp페이지 지시어 수정, meta tag 추가. (jsp파일을 새로 생성하여 내용참조.)
-
+ - 한글설정
+ 	> 해당 jsp페이지 지시어 수정, meta tag 추가. (jsp파일을 새로 생성하여 내용참조.)
+	> web.xml의 filter태그 - encoding항목
 
  **spring01의 index인 home.jsp 실행과정.
  	1> web.xml : 웹 프로젝트의 배치 기술서(deploy descriptor) - 웹 프로젝트의 환경설정 파일.

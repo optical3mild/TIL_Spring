@@ -1,0 +1,138 @@
+Spring 03강~
+
+1. 실행순서 복습
+   *서버 startup -->  web.xml --> DispatcherServlet --> servlet-context.xml (컨트롤러 등록 / url mapping)
+   *url 요청 (~/) --> HomeController.java의 home() 실행 --> 코드 실행 후 home으로 포워드(return "home")
+ 	--> DispatcherServlet이 다시 요청 가로챔(?) --> servlet-context.xml의 ViewResolver에 정의된 접두 접미로 요청완성
+ 	--> 해당 경로로 포워딩
+
+ -- web.xml ------------------------------------------------------------------------------------------
+	<!-- 스프링의 환경설정 파일 로딩 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/spring/root-context.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
+	<!-- 서블릿의 환경설정 -->
+	<servlet>
+		<servlet-name>appServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>appServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	===============================================================================
+	** url pattern
+		> /    : default servlet --> DispatcherServlet [ servlet-context.xml참조 ]
+				(tomcat의 default를 사용하지 않고 spring의 web.xml에서 새로 등록)
+		> /*   : 모든 요청 (서블릿 + jsp)
+		> *.do : 확장자가 do인 서블릿
+		
+		example)
+		> restful한 url : http://localhost/spring01/board/view/1
+		> 기존 : http://localhost/spring01/board/view.do?idx=1
+		
+		**tomcat에 내장된 서블릿 (tomcat이 설치된 폴더의 web.xml파일에 설정되어 있음.)
+			> DefaultServlet : 서블릿 클래스 매핑 --> dispatcherServlet
+				(tomcat의 default를 사용하지 않고 spring의 web.xml에서 새로 등록)
+			> JspServlet : *.jsp페이지 매핑
+			
+			>>모든요청을 dispatcherServlet(default)로 처리하면 404에러 발생.
+				: jsp페이지를 찾지 못하게되어 이동불가. 404발생.
+		
+	** servlet mapping url과 동일하게 요청이 들어오면 
+	  dispatcherservlet이 요청을 가로채고, servlet-context.xml을 참조하여 처리한다.
+	  (view resolver로 등록된 prefix와 suffix를 참조하여 요청 완성,
+	  base-package로 등록되어 있는 패키지에 포함된 클래스들이 메모리에 로드되어 있고,
+	  그 중에서 요청과 맞는 컨트롤러를 검색하여 처리)
+	  
+	** Controller의 메소드에서 model : request역할에 해당.
+	
+	** root-context.xml : 서블릿 이외의 설정(DBCP)
+	** servlet-context.xml : 서블릿에 관련된 설정
+		> context:component-scan 태그가 없으면 컨트롤러 인식이 안됨 = 스프링에서 컨트롤러로 등록되지 않음.
+		> servlet class에서 자주 사용하는 어노테이션
+			@Controller : 컨트롤러 빈
+			@Repository : DAO(데이터베이스 관련 작업)빈
+			@Service : 서비스(비즈니스 관련 로직)빈
+			@Inject : 의존관계 주입
+	===============================================================================	
+	
+	<!-- 한글 처리를 위한 인코딩 필터 : 스프링에 내장되어 있는 CharacterEncodingFilter 동작 -->
+	<filter>
+		<filter-name>encoding</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encoding</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+----------------------------------------------------------------------------------------------------	
+	
+2. Spring 디렉토리 구조
+	src/main/java - 자바 코드 (Controller, Model, Service)
+	src/main/resources - 자바코드에서 참조하는 리소스 파일들 : sqlMapConfig.xml, **MyBatis의 Mapper.
+
+	src/test/java - 테스트 관련 코드
+	src/test/resources - 테스트 코드에서 참조하는 리소스 파일들
+	
+	
+	src/main/webapp - 웹서비스 루트 디렉토리(외부에서 접근가능)
+	src/main/webapp/resources - js,css,image 등의 웹리소스 파일
+	
+	src/main/webapp/WEB-INF - 외부에서 접근 불가능(보안을 위해서). 컨트롤러를 경유해 접근 가능.
+
+	src/main/webapp/WEB-INF/classes - 컴파일된 클래스
+	src/main/webapp/WEB-INF/spring - 스프링의 환경설정파일
+	
+	src/main/webapp/WEB-INF/spring/root-context.xml - 서블릿과 관련되지 않은 모든 리소스에 대한 설정
+	src/main/webapp/WEB-INF/spring/servlet-context.xml - 서블릿과 관련된 리소스에 대한 설정
+	
+	src/main/webapp/WEB-INF/views - html, jsp 페이지
+	
+	pom.xml - 메이븐에서 참조하는 라이브러리들에 대한 설정파일.
+
+
+3. 의존관계 : DI, IoC 설명
+	*spring01 패키지 하위 test패키지 생성, MemberUse클래스 생성. 작성내용 참조.
+
+4. Maven Repository 조회
+	http://mvnrepository.com
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
