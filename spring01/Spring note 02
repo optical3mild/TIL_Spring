@@ -111,28 +111,209 @@ Spring 03강~
 
 4. Maven Repository 조회
 	http://mvnrepository.com
+	설정 dependancy태그이하를 ctrl+c하여 pom.xml에 ctrl+v 
 	
 	
+===================================================================
 	
+[2. spring과 mybais의 연동]	
 	
+
+1. 로깅툴
+
+1> 로깅툴을 사용하는 이유
+ - System.out.println() 명령어는 IO리소스를 많이 사용하여 시스템이 느려질 수 있음.
+ - 로그를 파일로 저장하여 분석할 필요가 있음.
+ 
+2> 로깅툴의 종류
+ - commons-logging : 스프링3에서 사용하던 로깅툴.
+ - log4j : 효율적인 메모리관리로 그동안 많이 사용되었음.
+ - logback : log4j보다 성능이 더 우수하여 최근에 많이 사용되고 있음.
+ - SLF4J : logback을 사용하기 위한 인터페이스.
 	
+3> SLF4J 설정방법 =======================================================================
+1. pom.xml의  properties태그 내 slf4j-version을 1.7.25 로 설정.
 	
+	<properties>
+		<!-- 자바버전을 1.8로 변경-->
+		<java-version>1.8</java-version>
+		<!-- spring framework 버전을 5.0.3으로 변경. -->
+		<org.springframework-version>5.0.3.RELEASE</org.springframework-version>
+
+<!-- 이하 sample에서 복사. -->		
+		<org.aspectj-version>1.9.2</org.aspectj-version>
+		<org.slf4j-version>1.7.25</org.slf4j-version>
+	</properties>
 	
+2. pom.xml에 관련된 라이브러리 추가 - dependancy이하 내용, 필요 목록 정리필요.
+
+3. src/main/resources에 logback.xml파일 작성
+
+4. 로그를 수집할 클래스에 변수 선언
+ private static final Logger logger = LoggerFactory.getLogger(로그를 수집할 클래스이름.class);
+  > private : 외부에서 로그를 가로채지 못하도록 하기 위해 설정.
+  > static final : 로그 내용이 바뀌지 않으므로 상수로 설정.
+  
+5. 로그를 수집할 method에서 로그 수집 명령어 호출
+ logger.info("로그 타이틀", 출력할 값);
+ 
+=============================================================================================
+
+4> 로그의 level
+ - Debug : Debug, Info, Warn, Error 포함
+ - Info : Info, Warn, Error 포함
+ - Warn : Warn, Error 포함
+ - Error : Error 포함
+ 
+
+2. 데이터베이스 연결설정 및 테스트
+
+1> 오라클 테이블 스페이스 생성(56:00). --> mysql에 'spring'으로 생성.
+	: 사용자 계정 생성 - spring/1234
 	
+	[sql 사용자 계정생성, 권한부여]===================================================================
+	mysql -u root -p
 	
+	> create user 'spring'@'localhost' identified by '1234'
+	> grant all privileges on *.* to 'spring'@'localhost'
+	> grant all privileges on *.* to 'spring'@'%' identified by '1234'
+	> flush privileges;
+	========================================================================================
+
+2> src/test/java/OracleConnectionTest.java --> MysqlConnectionTest.java
+	: 데이터베이스 연결을 테스트하기 위한 테스트 케이스 작성.
 	
+	개발 --> 테스트 --> 검수 --> 서비스 개시
+	> 테스트 단계에서 실제 기능을 하나하나 구동하여 확인할 수 있으나, 비효율적.
+	> 테스트 케이스를 만들어서 테스트 --> 자동화 (JUnit) : JUnitTestCase
+	> Ctrl+F11 or classfile을 JUnitTest로 구동.
 	
+	<JUnit Test Case를 생성, 코드 작성 : MysqlConnectionTest.java 참조.>
+	****pom.xml의 설정을 참조하여 JUnit의 현재버전을 확인.
+	- example -------------------------------------------
+	package com.example.spring01;
 	
+	import java.sql.Connection;
+	import java.sql.DriverManager;
 	
+	import org.junit.Test;
+	import org.slf4j.Logger;
+	import org.slf4j.LoggerFactory;
 	
+	public class MysqlConnectionTest {
+		//로깅 처리를 위한 코드
+		private static final Logger logger =
+		
+		...
+			
+	}
+	------------------------------------------------
+
+3> DB : MyBatis 설정 테스트 - src/test/java/MybatisTest.java
+ - 자바 코드에 데이터베이스 연결 문자열 등의 중요한 정보를 직접 입력하는 것은 위험. --> decompile시 노출됨.
+ - mybatis 관련 bean의 의존관계(root-context.xml의 BeansGraph탭 확인.)
+ 	---------------------------------------------------------------------
+ 	sqlSession[reference <sqlSessionFactory>]
+ 	--> sqlSessionFactory [datasource, configLocation, mapperLocations]
+ 	--> dataSource [driverClassName, url, username, password]
+ 	---------------------------------------------------------------------
+ 	> SqlSessionTemplate : SqlSession 객체생성.
+ 	> SqlSessionFactoryBean : SqlSessionTemplate 객체생성.
+ 	> DriverManagerDataSource : DB연동 클래스. datasource에 DB연동이 다 포함되어 설정됨.
+    
+ 	>> SqlSessionFactoryBean --> SqlSessionTemplate --> SqlSession(code에서 사용하는 객체.)
+
+	**DBCP설정 : root-context.xml
+	===============================================================================================
+	**** <bean > --> 서버가 시작될 때 spring에서 생성하여 메모리에 로드되고 관리됨.
 	
+	<bean id = "참조변수" class = "자료형">
+ 	ex) <bean id = "str" class = "String"> --> String str = new String();
+ 	
+ 	3. <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+ 	> id : 참조변수, class : 자료형
+ 	
+		<!-- 드라이버 클래스 이름이 변경됨 -->
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+		> property : 멤버변수, name = 변수명, value = 값
+		> 드라이버 클래스 : DriverSpy - 실행한 쿼리가 로그로 출력됨. 어디까지 실행되었는지 확인가능.
+		
+		<!-- 연결문자열에 log4jdbc가 추가됨 : 실행과정을 log로 남기기 위해 삽입. -->
+		<property name="url" value="jdbc:log4jdbc:oracle:thin:@localhost:1521:xe" />
+		> <property name="url" value="jdbc:log4jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8&serverTimezone=UTC" />
+		
+		<property name="username" value="hr" />
+		<property name="password" value="hr" />
+	</bean>
 	
+	2. <!-- SqlSessionFactory 객체 주입 : 자료형 sqlSessionFactoryBean -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		> 현재 파일인 root-context.xml의 dataSource 항목을 참조
+		<property name="configLocation" value="classpath:/mybatis-config.xml"></property>
+		> MyBatis 설정파일의 경로. spring에서는 aliases설정 이외에는 다른설정필요 없음.
+		<property name="mapperLocations" value="classpath:mappers/**/*Mapper.xml"></property>
+		> MyBatis mapper 파일의 경로.
+		> classpath = src디렉토리 (src/main/resources)
+		> /** = 모든 하위디렉토리. 중간에 하위 디렉토리가 위치하여도 된다는 뜻.
+	</bean>
 	
+	1. <!-- SqlSession 객체 주입 : SqlSessionTemplate 생성-->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate"
+		destroy-method="clearCache">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"></constructor-arg>
+		> constructor : 생성자. sqlSessionFactory가 들어가 있음
+		> ref : 참조항목의 name. 현재 파일인 root-context.xml의 sqlSessionFactory 항목을 참조
+	</bean>
+	===============================================================================================
+ 
+ - MybatisTest class작성. 파일 참조 : 실행하면 console에 아래 내용이 출력됨.
+	> 드라이버 로드 로그 : Loaded JDBC driver: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+	> sqlSessionFactory 인스턴스 확인 : sqlFactory:org.apache.ibatis.session.defaults.DefaultSqlSessionFactory@5032714f
+	> sqlSession 확인 : sqlSession:org.apache.ibatis.session.defaults.DefaultSqlSession@7c137fd5
+	> class에 작성된 logger내용 출력 : mybatis 연결성공
+
+
+3. Controller와 view의 연결 실습
+
+1> controller.MainController.java : 컨트롤러 패키지 생성, MainController작성.
+	- http://localhost/spring01/ --> MainController의 main() 실행
+	- main.jsp를 생성 ( 그 전에 기존의 homeController의 controller를 주석처리하여 요청 충돌방지)
 	
+2> 구구단 페이지 실습
+	- views/include/header.jsp - jstl, jquery, contextPath 설정(자주 사용하므로 등록)
+		**contextPath ---------------------------------------------------------------------------------
+		WAS(Web Application Server)에서 웹어플리케이션을 구분하기 위한 path.
+		한 web server에서 여러개의 홈페이지를 운영하고 싶을 때 사용하는 방법. apache의 가상호스팅 개념.
+		이클립스에서 프로젝트를 생성하면 , 자동으로 server.xml에 추가된다.
+		-----------------------------------------------------------------------------------------------
+		> jsp, servlet은 mapping이 되나 이미지,css,js들은 mapping이 되지않음 --> 설정필요.
+		
+	- views/include/menu.jsp - 메뉴 생성하여 main.jsp에 삽입
+	- views/main.jsp
+	- views/gugu.jsp - 구구단 출력페이지.
+	- MainController.java에 gugu.do 요청 시 작동될 method 추가, 매핑.
+		> gugu.do가 요청될 때 MainController의 gugu()가 실행되도록 mapping
+		> MainController.java의 @RequestMapping(gugu.do)이하 참조.
+		 ( @RequestMapping 작성형식, 값을 전달받는 방법 @RequestParam(defalutValue="기본값") 확인할 것.)	
 	
-	
-	
-	
+	spring 03 종료.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 	
 	

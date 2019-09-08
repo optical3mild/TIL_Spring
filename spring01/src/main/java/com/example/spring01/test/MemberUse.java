@@ -41,7 +41,9 @@ public class MemberUse {
 	
 	//느슨한 결합관계 -- 인스턴스를 외부에서 만들어서 전달
 	// --> "의존관계 주입(Dependency Injection, DI)" 필요.
-	@Inject // @Inject가 있는 경우, spring이 member2라는 인스턴스를 생성하여 연결.
+	// 객체생성, 소멸(라이프사이클 관리)
+	// --> IoC (Inversion of Control, 제어의 역전) - 객체에 대한 제어권이 개발자에서 스프링으로 이동.
+	@Inject // @Inject가 있는 경우, spring이 member2라는 인스턴스를 생성하여 연결(설정필요).
 	Member2 m;
 	public MemberUse(Member2 m) {
 		
