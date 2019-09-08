@@ -7,11 +7,13 @@
 	<name>spring01</name> 
 	<packaging>war</packaging> <!-- 패키징 방식, 기본값 jar, 웹애플리케이션의 경우 war -->
 	<version>1.0.0-BUILD-SNAPSHOT</version> <!-- 프로젝트 버전 -->
+	
+	<!-- 기본 라이브러리 선언 -->
 	<properties>
 		<!-- 자바버전을 1.8로 변경-->
 		<java-version>1.8</java-version>
 		<!-- spring framework 버전을 5.0.3으로 변경. -->
-		<org.springframework-version>5.0.3.RELEASE</org.springframework-version>
+		<org.springframework-version>5.0.1.RELEASE</org.springframework-version>
 
 <!-- 이하 sample에서 복사. -->		
 		<org.aspectj-version>1.9.2</org.aspectj-version>
@@ -23,6 +25,8 @@
 			<url>https://code.lds.org/nexus/content/groups/main-repo</url>
 		</repository>
 	</repositories>
+	
+	<!-- 외부 라이브러리 추가 영역 -->
 	<dependencies>
 
 		<!-- Spring -->

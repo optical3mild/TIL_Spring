@@ -287,7 +287,18 @@ Spring 03강~
 		한 web server에서 여러개의 홈페이지를 운영하고 싶을 때 사용하는 방법. apache의 가상호스팅 개념.
 		이클립스에서 프로젝트를 생성하면 , 자동으로 server.xml에 추가된다.
 		-----------------------------------------------------------------------------------------------
+		
 		> jsp, servlet은 mapping이 되나 이미지,css,js들은 mapping이 되지않음 --> 설정필요.
+		================================================================================================
+		- 설정하지 않았을 때 .jsp, .html등의 페이지 요청을 제외한 모든요청은 DispatcherServlet에서 처리하므로
+		  이미지, css, js등의 리소스파일들은 DispatcherServlet이 처리하려고 시도하지만 처리되지 못하고
+		  브라우저에서 오류가 발생한다.
+		  
+		- js, css, png, jpg 등등 --> resource로 처리하여야 함.
+			> servlet-context.xml에서 설정 : <resources mapping="/resources/**" location="/resources/" />
+			> mapping : 가상경로, location : 실제 경로
+			>> js등의 파일을 jsp등에서 참조/include할 때 작성하는 경로는 mapping에 작성된 경로에 부합되어야 함.
+		================================================================================================
 		
 	- views/include/menu.jsp - 메뉴 생성하여 main.jsp에 삽입
 	- views/main.jsp
@@ -296,12 +307,90 @@ Spring 03강~
 		> gugu.do가 요청될 때 MainController의 gugu()가 실행되도록 mapping
 		> MainController.java의 @RequestMapping(gugu.do)이하 참조.
 		 ( @RequestMapping 작성형식, 값을 전달받는 방법 @RequestParam(defalutValue="기본값") 확인할 것.)	
+
+>>spring 03 종료.
+>>spring 04강 ~ (controller-view 연결, mybatis-spring연동으로 DB연결 실습)
+
+3> test 메뉴 구현 - MainController.java에 test(), do*()추가.
+	- test.do(서블릿) --> MainController.java (url mapping) --> test.jsp
+	- 서블릿 --> DefaultServlet(기본) --> DispatcherServlet이 가로채서 처리(spring에 내장. web.xml에 기본 서블릿으로 재설정)
+	  --> servlet-context.xml 참조, base-package안의 클래스들을 서버가 시작될 때 메모리에 로드
+	  		(**로드된 클래스들은 explorer의 icon에 파란색 S표시가 되며, spring에서 관리하는 빈이 된다.)
+	  --> MainController에 mapping이 되어있는 것을 확인하여 메소드를 처리하고 포워딩하면서 결과를 test.jsp로 넘김
+	 
+	- test.jsp 작성
+	  > .html, .htm : 일반 웹페이지. tomcat을 경유하지 않고 통과시킴.
+	  > .jsp : JspServlet 경유
+	  > 서블릿(doA, hello.do 등의 페이지 외 기타형태) : DispatcherServlet(재설정됨)을 경유
+
+	- MainController에 test(), doA()추가. --> class파일 참조.
 	
-	spring 03 종료.
+	- MainController에 doA()추가, doA.jsp 작성 - model을 이용한 값 전달 코드(이전과 비교 축약된 부분 설명)예시
+	- MainController에 doB()추가, doB.jsp 작성 - 리턴타입이 void인 경우 포워딩 예시
+	- MainController에 doC()추가, doC.jsp 작성 - Map/HashMap과 ModelAndView 사용하여 값을 넘겨주고 포워딩.
+		> productDTO 생성.
+			---------------------------------------------------------------------------------------------------------
+			- 패키지 추가 : com.example.spring01.model.dto (com.example.spring01 : three level package, 기본패키지)
+			- ProductDTO 생성 : 필드, 생성자, getter/setter, toString
+			---------------------------------------------------------------------------------------------------------
+		> doC.jsp 작성.
+		> controller에서 ModelAndView로 넘겨준 model인 "map"안애 DTO객체가 있으므로 map.product로 객체에 접근.
+		> map.product.name으로 객체의 속성에 접근.
+	
+	- MainController에 doD()추가, doD.jsp 작성 - "redirect:"를 이용, test/doE로 매핑되어 있는 서블릿 요청 메소드로 넘김.
+	  ==== forward와 redirect ================================================================================
+		forward : 주소 그대로, 화면 이동, 데이터 전달. --> 화면은 바뀌지만 주소는 변경되지 않는다.
+		redirect : 주소 변경, 화면 이동, get방식으로 소량의 데이터만 전달 가능(초과분은 손실됨). 
+		
+		** spring에서는 일반 return은 forward, return "redirect:..."는 redirect
+		
+>>		** forward는 주소가 바뀌지 않는다? : url이 변경되지 않는다. --> 구체적 내용 확인하여 정리할 것....
+	  ========================================================================================================
 
-
-
-
+	- MainController에 doF()추가, test.jsp에 script doF() 작성 - js, ajax를 이용하여 background로 서버와 통신.
+		> ajax : 비동기적인 방식 - 화면이 이동되지 않고 background에서 서버와 통신이 이루어짐.
+		> controller doF()메소드 작성 : 포워딩이 되지않게 작성 --> 뷰를 리턴하는 것이 아닌 데이터만 리턴.
+		> test.jsp
+			- 페이지에 작성된 js function doF()의 ajax 통신 성공으로 받는 매개변수 result의 값 = DTO 
+			- $ is not defined --> jquery가 인식되지 않는경우. jquery include확인필요
+			- servlet-context.xml에 resources태그로 js등의 리소스 파일이 위치한 경로 추가필요.
+			
+			** jsp, servlet은 mapping이 되나 이미지, css, js들은 mapping이 되지않음 --> 설정필요.
+			================================================================================================
+			> .html, .htm : 일반 웹페이지. tomcat을 경유하지 않고 통과시킴.
+	  		> .jsp : JspServlet 경유
+	  		> 서블릿(doA, hello.do 등의 페이지 외 기타형태) : DispatcherServlet(재설정됨)을 경유
+		
+			- 설정하지 않았을 때 .jsp, .html등의 페이지 요청을 제외한 모든요청은 DispatcherServlet에서 처리하므로
+		  	이미지, css, js등의 리소스파일들은 DispatcherServlet이 처리하려고 시도하지만 처리되지 못하고
+		  	브라우저에서 오류가 발생한다.
+		  
+			- js, css, png, jpg 등등 --> resource로 처리하여야 함.
+				> servlet-context.xml에서 설정 : <resources mapping="/resources/**" location="/resources/" />
+				> mapping : 가상 경로, location : 실제 경로
+				>> js등의 파일을 jsp등에서 참조/include할 때 작성하는 경로는 mapping에 작성된 경로에 부합되어야 함.
+				ex) spring01의 경우 : <resources mapping="/include/**" location="/WEB-INF/views/include/" />
+					- WEB-INF아래 경로생성 : 보안을 위한 권장사항(외부에서 접근불가한 경로)
+					- /** : 모든 하위디렉토리를 포함한다.
+			================================================================================================
+		
+			- 404에러 : controller의 해당 method(doF())에 @RequestBody 추가 - 없는경우 포워드 시도로 브라우저에서 404에러 발생
+			- 500에러 : ajax비동기 통신으로 객체 자체를 주고받으려면 컨버터가 필요(컨버터를 이용 json형식으로 주고받아야 함)
+				> json 데이터 형식 : {"변수":"값", "변수":"값"}
+				> Maven 저장소에서 라이브러리 추가필요 (mvnrepository.com) - pom.xml에 "jackson-databind"라이브러리 추가
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
 
 
 
