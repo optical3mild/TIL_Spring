@@ -378,11 +378,17 @@ Spring 03강~
 			- 500에러 : ajax비동기 통신으로 객체 자체를 주고받으려면 컨버터가 필요(컨버터를 이용 json형식으로 주고받아야 함)
 				> json 데이터 형식 : {"변수":"값", "변수":"값"}
 				> Maven 저장소에서 라이브러리 추가필요 (mvnrepository.com) - pom.xml에 "jackson-databind"라이브러리 추가
+					(jackson-databind : @ResponseBody가 작동하기 위한 라이브러리. dto를 json형식으로 변환한다.)
 		
-		
-		
-		
-		
+		> test.jsp - doF()
+			- json 형식으로 리턴됨 : 리턴값으로 새로운 dto를 생성하고 @ResponseBody가 dto를 json으로 변환하여 반환.
+>>확인필요	- js(jquery ajax)에서는 받은 json을 다시 변환해줄 필요없이 js 객체로 인식하여 바로 속성을 불러올 수 있다.
+					
+	- SampleRestController
+		> spring 4.0 이상부터 사용가능한 ajax처리 전용 컨트롤러(백그라운드에서 실행됨.)
+		> @RestController 사용. 앞서 작성한 MainController의 doF()와 동일한 기능을 함(객체를 json으로 리턴)
+		> ajax처리의 경우, view를 불러오는 경우보다 data를 받는 경우가 많으므로 RestController를 사용.
+		> SampleRestController.java 참조.
 		
 		
 		

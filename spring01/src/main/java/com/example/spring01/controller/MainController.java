@@ -121,11 +121,11 @@ public class MainController {
 	
 	// 포워딩이 되지 않도록 작성...
 	// --> 뷰를 리턴하는 것이 아닌 데이터 자체를 리턴할 경우
-	@ResponseBody //없을경우 포워딩 시도로 브라우저에서 404에러 발생
-	@RequestMapping("test/doF")
-	public ProductDTO doF() {
-		return new ProductDTO("냉장고", 500000);
-	}
+//	@ResponseBody //dto를 json으로 변환. 없을경우 포워딩 시도로 브라우저에서 404에러 발생
+//	@RequestMapping("test/doF")
+//	public ProductDTO doF() {
+//		return new ProductDTO("냉장고", 500000);
+//	}
 	
 }
 

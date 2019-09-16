@@ -13,6 +13,7 @@
 			type : "post",
 			url : "${path}/test/doF",
 			success : function(result){
+				console.log(result);
 				$("#result").html("상품명: " + result.name + ", 가격: " + result.price);
 			}
 		});
