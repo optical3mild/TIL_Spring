@@ -17,7 +17,8 @@
 		
 		<!-- 연결문자열에 log4jdbc가 추가됨 : 실행과정을 log로 남기기 위해 삽입. -->
 		<!-- <property name="url" value="jdbc:log4jdbc:oracle:thin:@localhost:1521:xe" /> -->
-		<property name="url" value="jdbc:log4jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8;serverTimezone=UTC" />
+		<!--  value에서 &이 인식되지 않는 경우, &amp;로 입력. -->
+		<property name="url" value="jdbc:log4jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8&amp;serverTimezone=UTC" />
 		
 		<property name="username" value="spring" />
 		<property name="password" value="1234" />

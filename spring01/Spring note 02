@@ -552,12 +552,29 @@ Spring 03강~
 		- dto는 필요할 때 생성, 삭제하여야 하므로 등록하지 않음.
 
 	--> "전체 사용자가 하나의 인스턴스를 공유하여 사용할 수 있는(하여야 하는) 경우에 bean으로 등록하여 사용"
+==============================================================================================================
+ 8> member_list.jsp 작성.
+	- controller가 페이지로 포워딩과 동시에 model에 저장된 값을 전달해줌. ('list'로 보냄)
+	- 페이지에서 'list'로 dto의 List를 받을 수 있음.
+	- forEach문으로 table형태로 화면에 출력가능.
+	- 500 error : root-context의 jdbc driver url의 value 내용 중 &이 인식되지 않아 연결실패 발생 --> &amp;로 변경.
+>>lec04 끝
+>>lec05
+	- fmt로 날짜형식 변경
+	- 회원등록 버튼추가 --> 컨트롤러에 추가 필요.
 
+ 9> write.jsp 작성, controller에 write.do와 insert.do 작성
+ 	- write.do : 등록페이지
+ 	- insert.do : db등록버튼
+	- @ModelAttribute
+		> 생략가능. 해당 객체를 폼에서 전달되는 값을 저장하는 객체로 지정.
+ 	- @ModelAttribute / @RequestParam
+		> 매개변수를 여러개로 하여 각 태그를 @RequestParam을 이용하여 따로 받을 수 있음. 
+		> 이 경우에는 코드에서 dto를 따로 호출하여 저장하는 과정이 필요함.  = 코드가 길어짐.
 
-
-
-
-
+ 10> mapper 추가 : memberMapper.xml에 insert tag (id : insertMember)
+ 	- insert.do --> memberController.java --> MemberService.java(Impl생략) --> MemberDAO.java(Impl생략) --> memberMapper.xml
+ 
 
 
 
