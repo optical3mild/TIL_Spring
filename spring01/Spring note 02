@@ -466,22 +466,129 @@ Spring 03강~
  	// commit; --> oracle에만 해당.
 	===================================================================================================
 
- 3> model.dto.MemberDTO.java
+ 3> model.dto.MemberDTO.java 작성.
  	- com.example.spring01 패키지 아래 model패키지 생성하여 작성.
 	- 기본 패키지인 spring01밖에 생성 시, servlet-context.xml에 설정되어 있는 basepackage 밖에 class가 있으므로 인식되지 않음.
+		> servers가 시작될 때 spring에서 메모리에 자동으로 로드하고 관리.
+	- date형 --> import시 java.util.date로드.
 	
-
-
-
-
-
-
-
-
-
-
-
-
+ 4> controller.MemberController.java 작성 - memberList(Model model)
+ 	- Controller, DAO, Service --> 스프링에서 관리 : new 생성자를 이용하여 인스턴스 생성하지 않음.
+ 	- @Controller/ @Service / @Repository 등 annotation으로 표시.
 	
+  **후속작업
+ 	- Controller --> Service --> DAO --> SqlSession --> Mapper
+>>	- @Inject
+>>	- Sqlsession : 클래스, 객체의 용도, 사용법, 정의 정리할 것.
+
+>> MyBatis mapper작성법 정리할 것.
+ 5> mapper 작성 : memberMapper.xml
+ 	- root-context.xml에 mapper를 작성할 위치 설정(현재는 되어 있음.프로젝트 생성 시 작성함.)
+ 	- SqlSessionFactory 객체주입 태그의 property로 mapperLocation이 정의되어 있음.
+ 	- mapper.xml 작성 시 namespace 확인 : 코드에서 'namespace.id' 형식으로 호출.
+ 	- resultType의 경로가 틀릴경우, 서버가 멈춤. 주의할 것. 경로가 길어지면 allias를 작성하여 작성부담을 줄일 것.
+ 	- allias 작성위치 : mybatis-config.xml의 typeAlliases태그.
+>>	- sql문이 실행되고, record하나가 dto에 쌓이고 arrayList가 만들어져서 data가 넘어감. (?)
 	
+ 6> model.dao.MemberDAO.java, MemberDAOImpl.java 작성.
+	- 강한 결합관계 : A클래스에서 C클래스를 바로 호출하여 사용  --> C클래스의 수정이 발생한 경우 A클래스도 수정필요.
+	- 느슨한 결합관계 : A는 B인터페이스를 호출하고 B가 C를 호출 --> C클래스의 수정/개발이 보다 자유로움.
+	
+ 	- MemberDAO.java : 인터페이스. spring에서 권장하는 느슨한 결합관계를 형성하기 위해(유지보수에 효율적)
+		> implements MemberDAO
+			- 구현클래스는 MemberDAOImpl.java로 작성하여 구현. 실제 기능은 구현클래스에서 담당.
+			- 클래스 생성창에서 add를 통해 어떤 인터페이스를 구현할 지 미리 작성하고 메소드 전체목록을 오버라이드 할 수 있다.
+
+	- MemberDAOImpl.java : 구현클래스.
+		> @Repository 
+			- 현재클래스를 dao bean으로 등록시킴. (현재클래스를 스프링에서 관리하는 dao bean으로 설정.)
+			- @Repository 가 붙은 클래스는 직접 생성시킬 수 없게되며 spring에 lifecycle을 맡기게 됨.
+			- 서버가 시작될 때 자동으로 싱글톤으로 생성되어 메모리에 로드됨.
+		> @Inject /n SqlSession sqlSession
+>>			- MyBatis manager를 사용하여 offsession으로(?) 인스턴스를 생성하는 방법 대신에 @Inject를 사용하여 주입. 
+			- MyBatis의 SqlSession객체를 스프링에서 생성하여 주입시킴.
+			- 의존관계 주입(Dependancy Injection, DI), 느슨한 결합, IoC(Inversion of Control, 제어의 역전)
+		==========================================================================================================	
+		**의존관계 주입 
+		1) MemberController -> MemberService -> MemberDAO(*Impl호출 생략) -> SqlSession -> memberMapper.xml  
+		 - 전체 흐름 : 위 순서대로 앞의 코드가 화살표로 가리킨 코드를 호출. 앞선 코드는 뒤의 코드에 의존한다.
+		 - 뒤 코드가 바뀌면 그 앞의 코드들은 전부 바뀌어야 한다. (강한 결합관계)
+		
+		2) MemberDAO <- SqlSession <- Spring Framework
+		 - SqlSession 객체를 Spring에서 생성하여 주입시키는 경우, 의존관계가 느슨해짐.
+		 - Spring이 SqlSession을 생성하고 SqlSession은 MemberDAO에 주입되어 의존관계가 역전됨.(IoC)
+		==========================================================================================================
+			- sqlSession은  root-context.xml에 정의되어 있음.
+				> bean의 id가 sqlSession(주입되는 변수명과 동일), class가 org.mybatis.spring.SqlSessionTemplate로 등록.
+>>				> 해당 bean tag의 destroy-method = "clearCache" : ???
+			- 결론적으로 @Inject를 통해 SqlSessionTemplate클래스로 sqlSession을 생성하는 과정을 축약하여 작성하는것.
+					
+		> 각각의 구현메소드에서는
+			- 인스턴스를 생성하지 않음, close()를 작성하지 않음(수행 시 error발생 - spring에 제어권이 넘어가 있기 때문)
+			
+ 7> service.MemberService.java, MemberServiceImpl.java
+ 	- service : dao보다는 좀더 큰 분류로 하나의 service는 여러 dao와 연결되어 호출할 수 있음.
+ 	- 구현클래스
+ 		> @Service : 스프링에서 관리하도록 제어권을 넘김.
+ 		> @Inject로 dao인스턴스를 주입.
+ 			- 어노테이션을 붙여 spring에서 관리하도록 만든 클래스는 new로 생성이 불가능하다
+				(= spring에서 lifecycle을 관리. new로 생성, close()등 임의로 관여불가. spring에서 생성하여 넣어주어야 사용가능.) 
+			- 자바코드 MemberDAO memberDao = new MemberDAOImpl();로 작성되는 것을 @Inject MemberDAO memberDao로 축약
+			- 자료형을 인터페이스와 동일하게 작성하여도 컴파일러에서는 구현 클래스를 찾아 인스턴스를 생성하여 주입시켜 준다.
+				= MemberDAO, MemberDAOImpl 둘다 사용가능하다. 
+		> 사용할 메소드에서 주입된 객체를 호출하여 리턴 : return memberDao.memberList();
+	
+	- MemberController에 코드 추가.
+		> Controller -> service -> dao,  dao -> service -> Controller
+		> Controller에서는 service를 호출하고 모델에 리턴값을 저장 후 포워딩.
+		> @Inject로 MemberService를 주입하여야 메소드내에서 호출 가능.
+>>		> 포워딩 시 model에 저장된 값도 같이 전달된다.
+
+** bean등록의 기준 ===========================================================================================
+	스프링에서 관리하는 bean
+		1. single ton 객체 : 서버가 구동중일 때, 하나만 생성하여 사용하는 객체.
+		2. 영속적인 객체 (persistence object) : 서버가 시작해서 끝날 때 까지 메모리에 상주하는 객체
+		- service, controller, dao등은 위의 조건에 부합.
+		- dto는 필요할 때 생성, 삭제하여야 하므로 등록하지 않음.
+
+	--> "전체 사용자가 하나의 인스턴스를 공유하여 사용할 수 있는(하여야 하는) 경우에 bean으로 등록하여 사용"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	

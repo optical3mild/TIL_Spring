@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
+<!-- namespace 확인 : 코드에서 'namespace'.'id' 형식으로 호출. -->
+<mapper namespace="member">
+	<!-- id가 중복되면 오류발생. 주의할 것. -->
+	<!-- resultType의 경로가 틀릴경우, 서버가 멈춤. 주의할 것. 경로가 길어지면 allias를 작성하여 작성부담을 줄일 것. -->
+	<!-- allias 작성위치 : mybatis-config.xml의 typeAlliases태그. -->
+	<!-- sql문이 실행되고, record하나가 dto에 쌓이고 arrayList가 만들어져서 data가 넘어감. -->
+	<select id = "memberList" resultType = "com.example.spring01.model.dto.MemberDTO">
+		select * from member order by name
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
