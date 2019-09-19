@@ -17,6 +17,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<insert id = "insertMember">
 		insert into member (userid,passwd,name,email) values (#{userid}, #{passwd}, #{name}, #{email})
 	</insert>
+	
+<!-- <select id ="viewMember" resultType = "com.example.spring01.model.dto.MemberDTO">  -->
+	<!-- mybaits-config.xml에서 alias처리. -->
+	<select id ="viewMember" resultType = "memberDto">
+		select * from member where userid = #{userid}
+	</select>
+	
+	<update id ="updateMember">
+		update member set passwd=#{passwd}, name=#{name}, email=#{email} where userid=#{userid}
+	</update>
+	
+	<!-- 비밀번호 check -->
+	<select id = "checkPw" resultType = "int">
+		select count(*) from member where userid = #{userid} and passwd = #{passwd}
+	</select>
+	
 </mapper>
 
 

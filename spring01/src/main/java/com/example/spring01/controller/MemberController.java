@@ -1,5 +1,6 @@
 package com.example.spring01.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -53,8 +54,39 @@ public class MemberController {
 	//      > 매개변수를 여러개로 하여 각 태그를 @RequestParam을 이용하여 따로 받을 수 있음. 
 	//		> 이 경우에는 코드에서 dto를 따로 호출하여 저장하는 과정이 필요함.  = 코드가 길어짐.
 	public String insert(@ModelAttribute MemberDTO dto) {
-		System.out.println(dto);
+		//System.out.println(dto);
+		memberService.insertMember(dto);
 		//목록을 보여주는 페이지의 컨트롤러 메소드로 연결.
 		return "redirect:/member/list.do";
+	}
+	
+	// userid를 받아 상세화면 페이지로 포워딩.
+	@RequestMapping("member/view.do")
+//	@RequestParam : request.getParameter("변수명")대체. 생략가능.
+//	public String view(@RequestParam String userid, Model model) {
+	public String view(String userid, Model model) {
+		//모델에 자료 저장
+		System.out.println("컨트롤 : "+ userid);
+		model.addAttribute("dto", memberService.viewMember(userid));
+		// view.jsp로 포워딩
+		return "member/view";
+	}
+	
+	@RequestMapping("member/update.do")
+	public String update(MemberDTO dto, Model model) { // java.util.Date
+		// 비밀번호 체크
+		boolean result = memberService.checkPw(dto.getUserid(), dto.getPasswd());
+		if(result) { // 비밀번호가 맞는 경우
+			// 회원정보 수정
+			memberService.updateMember(dto);
+			// 수정 후 목록으로 이동
+			return "redirect:/member/list.do";
+		} else { // 비밀번호가 틀린경우
+			// 사용자가 입력한 정보를 버리지 않고 model에 저장하여 포워딩과 함께 페이지에 뿌림.
+			model.addAttribute("dto", dto);
+			model.addAttribute("join_date", memberService.viewMember(dto.getUserid()).getJoin_date());
+			model.addAttribute("message", "비밀번호를 확인하세요.");
+			return "member/view"; // forward
+		}
 	}
 }

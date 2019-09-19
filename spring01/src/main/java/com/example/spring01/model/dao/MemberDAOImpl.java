@@ -1,6 +1,8 @@
 package com.example.spring01.model.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -31,15 +33,16 @@ public class MemberDAOImpl implements MemberDAO {
 	}
 
 	@Override
-	public void insertMember(MemberDTO vo) {
-		// TODO Auto-generated method stub
+	public void insertMember(MemberDTO dto) {
+		// myBatis실행객체인 sqlSession으로 sql문 실행. auto commit, auto close
+		sqlSession.insert("member.insertMember", dto);
 		
 	}
 
 	@Override
 	public MemberDTO viewMember(String userid) {
-		// TODO Auto-generated method stub
-		return null;
+		// 레코드 1개 = selectOne(), 2개이상 = selectList()
+		return sqlSession.selectOne("member.viewMember", userid);
 	}
 
 	@Override
@@ -49,15 +52,21 @@ public class MemberDAOImpl implements MemberDAO {
 	}
 
 	@Override
-	public void updateMember(MemberDTO vo) {
-		// TODO Auto-generated method stub
-		
+	public void updateMember(MemberDTO dto) {
+		sqlSession.update("member.updateMember", dto);
 	}
 
 	@Override
 	public boolean checkPw(String userid, String passwd) {
-		// TODO Auto-generated method stub
-		return false;
+		boolean result = false;
+		// mapper에 2개 이상의 자료를 전달할 때, : map, dto사용
+		Map<String, String> map = new HashMap<>();
+		map.put("userid", userid);
+		map.put("passwd", passwd);
+		int count = sqlSession.selectOne("member.checkPw", map);
+		//비번이 맞으면 true, 틀리면 false를 리턴
+		if(count == 1) result = true;
+		return result;
 	}
 
 }

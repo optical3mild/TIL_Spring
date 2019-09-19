@@ -28,7 +28,9 @@
 		<c:forEach var="row" items="${list }">
 			<tr>
 				<td>${row.userid }</td>
-				<td>${row.name }</td>
+				<td>
+					<a href="${path }/member/view.do?userid=${row.userid }" >${row.name }</a>
+				</td>
 				<td>${row.email }</td>
 				<td>
 					<fmt:formatDate value="${row.join_date }" pattern="yyyy-MM-dd HH:mm:ss" />
