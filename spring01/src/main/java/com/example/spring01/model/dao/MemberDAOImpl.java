@@ -47,7 +47,7 @@ public class MemberDAOImpl implements MemberDAO {
 
 	@Override
 	public void deleteMember(String userid) {
-		// TODO Auto-generated method stub
+		sqlSession.delete("member.deleteMember", userid);
 		
 	}
 

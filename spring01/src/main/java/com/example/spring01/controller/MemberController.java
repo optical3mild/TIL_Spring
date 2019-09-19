@@ -89,4 +89,18 @@ public class MemberController {
 			return "member/view"; // forward
 		}
 	}
+	
+	@RequestMapping("member/delete.do")
+	public String delete(String userid, String passwd, Model model) {
+		boolean result = memberService.checkPw(userid, passwd);
+		if(result) { // 비번이 맞으면 삭제 -> 목록으로 이동
+			memberService.deleteMember(userid);
+			return "redirect:/member/list.do";
+		} else { // 비번이 틀리면 되돌아감
+			model.addAttribute("message", "비밀번호를 확인하세요");
+			model.addAttribute("dto", memberService.viewMember(userid));
+			return "member/view";
+		}
+				
+	}
 }

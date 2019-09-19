@@ -660,14 +660,30 @@ Spring 03강~
 		> Controller에 비밀번호가 틀린 경우 model에 값을 저장하여 포워딩 시 같이 넘겨주도록 수정.
 		> view에서도 hidden tag를 삭제하고 jstl c:if를 이용, null이 아닌경우 화면에 받은값을 입력하도록 수정.
 
-
-
-
-
-
-
-
-
-
-
+   3) 상세페이지의 삭제기능 : delete.do 액션
+	- view.jsp에 jquery로 delete 버튼 function 추가 : if문과 confirm함수 사용(js의 확인창 팝업과 값 리턴함수)
+	- Controller에 member/delete.do 액션 추가.
+	- Controller에서 service호출, 비밀번호를 확인(checkPw는 수정기능 구현과정에서 구현) delete메소드 실행.
+	- Service에서 dao호출 delete메소드 실행.
+	- Dao에서 sqlSession을 호출, sql문 실행.
+	- Mapper에 작성되어 있는 sql문을 읽어 실행.
 	
+>> lec05 : 1:20:00 - spring01 project실습 종료.
+
+** project 배포 테스트 : lec05 1:23:00 ~ 1:32:00 ==============================================
+	- project 우클릭 -> export -> war 선택.
+		> war 파일이 생성될 위치를 선택하고 옵션 선택
+		> source file이 포함되지 않도록 할 것 : 배포시에는 컴파일된 class file만 포함될 뿐 source file은 배포하지 않는다.
+		> war파일로 서버에 배포될 때에는 maven project구조가 아니라 dynamic web project 구조로 서비스가 올라감.
+		> war file을 설치된tomcat/webapps/ 로 이동.
+		> cmd로 tomcat 실행.
+			- tomcat의 bin폴더로 이동, startup.bat을 실행하면 서버가 올라가면서 war file을 풀어 로드.
+		> 서버가 오류없이 올라가면 localhost/spring01입력
+			- 접속되지 않는다면 port번호를 입력하여 다시 실행해 볼것.
+		> warfile을 복사하였던 폴더에 압출이 풀려있고, 폴더가 생성되어 있음
+		> spring01 프로젝트 폴더 구조 확인 : WEB-INF에 개발한 정보들이 모두 들어가 있음을 확인할 수 있다.
+		> WEB-INF/lib : jar files - 배포될 때는 maven에 작성하였던 해당 라이브러리 파일들이 실제로 포함되어 배포됨.
+		
+		--> 개발한 프로젝트 폴더 구조에서 webapp폴더가 배포되었음.
+=======================================================================================
+--> spring note 03과 중복되는 내용.

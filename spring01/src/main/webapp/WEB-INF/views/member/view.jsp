@@ -64,6 +64,15 @@ $(function() {
 		// form1을 실행.
 		document.form1.submit();
 	});
+	$("#btnDelete").click(function(){
+		// confirm 함수 : 확인 = true / 취소 = false
+		if(confirm("삭제하시겠습니까?")) {
+			// name이 form1인 태그의 액션을 지정(속성설정)
+			document.form1.action="${path}/member/delete.do";
+			// form1을 실행.
+			document.form1.submit();
+		}
+	});
 });
 </script>
 </html>

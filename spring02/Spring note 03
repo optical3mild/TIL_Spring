@@ -1,0 +1,107 @@
+lec05 1:20:00 ~
+
+** project 배포 테스트 : lec05 1:23:00 ~ 1:32:00 =======================================================================
+	- project 우클릭 -> export -> war 선택.
+		> war 파일이 생성될 위치를 선택하고 옵션 선택
+		> source file이 포함되지 않도록 할 것 : 배포시에는 컴파일된 class file만 포함될 뿐 source file은 배포하지 않는다.
+		> war파일로 서버에 배포될 때에는 maven project구조가 아니라 dynamic web project 구조로 서비스가 올라감.
+		> war file을 설치된tomcat/webapps/ 로 이동.
+		> cmd로 tomcat 실행.
+			- tomcat의 bin폴더로 이동, startup.bat을 실행하면 서버가 올라가면서 war file을 풀어 로드.
+		> 서버가 오류없이 올라가면 localhost/spring01입력
+			- 접속되지 않는다면 port번호를 입력하여 다시 실행해 볼것.
+		> warfile을 복사하였던 폴더에 압출이 풀려있고, 폴더가 생성되어 있음
+		> spring01 프로젝트 폴더 구조 확인 : WEB-INF에 개발한 정보들이 모두 들어가 있음을 확인할 수 있다.
+		> WEB-INF/lib : jar files - 배포될 때는 maven에 작성하였던 해당 라이브러리 파일들이 실제로 포함되어 배포됨.
+		
+		--> 개발한 프로젝트 폴더 구조에서 webapp폴더가 배포되었음.
+========================================================================================================================
+
+1. MyBatis mapper interface
+ 
+1> mybatis에서 sql query를 작성하는 방법 2가지
+ 1) mapper xml 파일에 작성 : 3개의 파일을 작성.
+ 	- MemoDAO.java (인터페이스)
+ 	- MemoDAOImpl.java (구현클래스)
+ 	- memoMapper.xml (mapper)
+ 2) mapper interface에 작성 : 보다 간편
+ 	- MemoDAO.java : 인터페이스 하나에 sql포함시켜 파일 하나에 처리가능.
+ 		
+2> spring02 프로젝트 생성.
+	- Spring Legacy Project -> Spring MVC project
+		> 프로젝트 생성 시 top level package name을 반드시 3 level로 작성할 것. ( com.example.spring02 )
+ 	- sample 프로젝트에서 설정파일 복사
+ 		> pom.xml
+ 		> resources 디렉토리 : memoMapper.xml 제외.
+ 		> WEB-INF 디렉토리 : servlet-context, root-context, web.xml
+			- servlet-context : base-package 설정 변경 (com.example.spring02로 해당 프로젝트의 top level package로 변경)
+			- root-context : DB연결정보 변경.( property - url, username, password )
+	- project의 버전 설정
+		> 설정파일에 맞게 조정 : java Build path, java Compiler, project Facets 등에서 버전 조정.
+
+2> 실습예제 - 메모장
+ 1) 메모장 테이블
+  Oracle =============================================================================================================
+ 	create table memo (
+ 		idx number not null primary key,
+ 		writer varchar2(50) not null,
+ 		memo varchar2(200) not null,
+ 		post_date date default sysdate
+ 	);
+ 	
+ 	insert into memo (idx,writer,memo) values (1,'kim', '첫번째 메모');
+ 	insert into memo (idx,writer,memo) values (2,'park', '두번째 메모');
+
+/* lec 05에서는 실행 x	
+>> 	delete from memo;
+>> 	-- nvl(A,B) A가 null이면 B
+>> 	select nvl(max(idx)+1,1) from memo;
+ 	
+>> 	insert into memo (idx,writer,memo) 
+ 		values ((select nvl(max(idx)+1,1 from memo),'park', '두번째 메모');
+ */
+ ========================================================================================================================
+ 
+  MySql ===============================================================================================================
+	- varchar2 없음, sysdate는 now()로 date는 datetime(시간을 포함한 날짜)로 변경. 
+ 	create table memo (
+ 		idx number not null primary key,
+ 		writer varchar(50) not null,
+ 		memo varchar(200) not null,
+ 		post_date datetime default now()
+ 	);
+ 
+ 	insert into memo (idx,writer,memo) values (1,'kim', '첫번째 메모');
+ 	insert into memo (idx,writer,memo) values (2,'park', '두번째 메모');
+ 
+========================================================================================================================= 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 	
+
+
+	
