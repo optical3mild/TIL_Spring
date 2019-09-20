@@ -10,6 +10,12 @@
 <body>
 <%@ include file="../include/menu.jsp" %>
 <h2>메모장</h2>
+<form method="post" action="${path }/memo/insert.do">
+	이름 : <input name="writer" size="10"><br>
+	메모 : <input name="memo" size="40">
+	<input type="submit" value="확인">
+</form>
+<br>
 <table style="border: 1px solid black; width:500px;">
 	<thead>
 		<tr>
@@ -25,7 +31,9 @@
 				<td>${row.idx }</td>
 				<td>${row.writer }</td>
 				<td>${row.memo }</td>
-				<td>${row.post_date }</td>
+				<td>
+					<fmt:formatDate value="${row.post_date }" pattern="yyyy-MM-dd HH:mm:ss" />
+				</td>
 			</tr>
 		</c:forEach>
 	</tbody>
