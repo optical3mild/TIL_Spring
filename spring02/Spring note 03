@@ -27,7 +27,7 @@ lec05 1:20:00 ~
  2) mapper interface에 작성 : 보다 간편
  	- MemoDAO.java : 인터페이스 하나에 sql포함시켜 파일 하나에 처리가능.
  		
-2> spring02 프로젝트 생성.
+2> spring02 프로젝트 생성 : mapper interface로 sql query작성하는 예제.
 	- Spring Legacy Project -> Spring MVC project
 		> 프로젝트 생성 시 top level package name을 반드시 3 level로 작성할 것. ( com.example.spring02 )
  	- sample 프로젝트에서 설정파일 복사
@@ -76,26 +76,118 @@ lec05 1:20:00 ~
  
 ========================================================================================================================= 
  
+lec06~ 
+ 2) root-context.xml에 코드 추가
+	----------------------------------------------------------------------------------------------------
+	<?xml version="1.0" encoding="UTF-8"?>
+	 
+	//중략
+	<!-- MyBatis mapper interface bean을 자동으로 검색하여 생성함. -->
+		<mybatis-spring:scan base-package="com.example.spring02.model.memo"/>
+	
+	</beans> 
+	---------------------------------------------------------------------------------------------------
+ 	- "mybatis-spring:scan" : mybatis와 spring 연동기능. base-package기준으로 scan.
  
+ 3) package추가, class 작성	
+ 	1> top level package(com.example.spring02)하위에 미리 여러개의 package작성
+ 		> controller -> memo -->> com.example.spring02.controller.memo
+ 		> model -> memo -> dao, dto
+ 							-->> com.example.spring02.model.memo.dao
+ 							-->> com.example.spring02.model.memo.dto
+ 		> service -> memo -->> com.example.spring.service.memo
+ 		> 추후 memo패키지와 동일 레벨에 product등의 기능별 패키지가 추가된다.
+ 	
+ 	2> MemoDTO작성 (model.memo.dto)
+ 	3> MemoDAO작성 (model.memo.dao, 인터페이스)
+ 		- MemoController --> MemoService(인터페이스) --> MemoServiceImpl(구현클래스) --> MemoDAO(인터페이스)
+ 			> Mapper.xml에 설정하는 방법과 달리, MemoDAO의 구현클래스와 mapper는 생성하지 않음.
+ 			> 위의 흐름대로 실행되며, 바로 view로 연결됨.
+ 			> MemoDAO인터페이스에 list()메소드가 완성되지 않았으나 
+ 				@Select 어노테이션과 sql문의 조합으로 sql이 실행되고 리턴값을 자동으로 만들어 리턴
+ 				-----------------------------------------------------------------------------------
+ 				@Select("select * from memo order by idx desc")
+				public List<MemoDTO> list();
+ 				----------------------------------------------------------------------------------
+ 			--> DAO, DAOImpl, mapper.xml이 DAO에 합쳐진 기능. 코드도 축약됨.
+ 			--> root-context.xml의 <mybatis-spring:scan >의 base-package로 등록된 패키지 이하에 존재하는 클래스들만 가능.
  
+ 	4> MemoService, MemoServiceImpl 작성 (service.memo)
+ 		- spring에서는 controller, service, model(dao)는 spring에 제어권을 넘김. 어노테이션으로 각각의 클래스들을 표시.
+ 			> Controller : @Controller, @RestController(json으로 리턴할 때)
+ 			> Service : @Service
+ 			> Model : @Repository
+ 		- Service에서는 dao를 호출. 변수만 선언하면 null값이 되므로, @Inject를 이용하여 객체를 주입
+ 			> 의존관계 주입(스프링에서 인스턴스 생성)
+ 		- 원하는 method작성 ( 리턴으로 dao의 메소드 호출결과를 보냄 )
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+ 	5> MemoController 작성
+ 		- @Controller
+		- @RequestMapping("memo/*")
+			> 공통적인 url패턴 - 공통패턴과 메소드별 세부 패턴으로 나누어 작성할 수 있다.
+			> 세부적인 url패턴 - 해당 메소드 위에 공통패턴 이후의 패턴을 작성. @RequestMapping("list.do")
+		- controller에서는 서비스 인스턴스를 호출 : 의존관계 주입 (@Inject MemoService memoService;)
+		- ModelAndView : model과 view의 정보를 같이 가지고 있는 클래스
+			> 리턴타입 String으로 포워딩할 경로를 지정하고, Model객체에 data를 저장하여 처리하는 방식대신에 사용.
+			 ---String과 model을 이용한 경우-------------------------------------------------------------------------------------------------------
+			 @RequestMapping("list.do")
+			 public String list(Model model) {
+			 	List<MemoDTO> items = memoService.list();
+			 	model.addAttribute("list", items)
+			 	return "memo/memo_list";
+			 }
+			 ----------------------------------------------------------------------------------------------------------
+			
+			> modelandview를 선언하고 메소드를 이용하여 저장, 리턴
+			---ModelAndView를 이용한 경우--------------------------------------------------------------------------------------------------
+			@RequestMapping("list.do")
+			public ModelAndView list(ModelAndView mav) {
+				List<MemoDTO> items = memoService.list();
+				// servlet-context에 저장된 접두사, 접미사를 이용하여 전체경로가 완성됨.
+				mav.setViewName("memo/memo_list"); // 포워딩할 view의 이름
+				mav.addObject("list", items); // 전달할 데이터
+				return mav;
+			}
+			------------------------------------------------------------------------------------------------------
+		
+		- ModelAndView를 이용한 축약코드
+			> 리턴에 modelandview를 저장할 값과 함께 생성하여 리턴.
+			------------------------------------------------------------------------------------------------------
+			@RequestMapping("list.do") // 세부적인 url pattern
+			public ModelAndView list() {
+				List<MemoDTO> items = memoService.list();
+				return new ModelAndView("memo/memo_list", "list", items);
+			}
+ 			-----------------------------------------------------------------------------------------------------
+ 	
+ 	6> include 폴더 생성
+ 		> style.css, header.jsp, menu.jsp 작성.
+ 	
+ 	7> memo_list.jsp 작성
+ 		> spring02 에서 만들어지는 jsp파일에 공통적으로 include되는 파일들을 spring 설정에 setting하여 새 페이지에 모두적용.
+ 			- window --> preference --> web --> jsp files --> editor --> templates 에서 new jsp로 실행되는 template수정.
+ 				------------------------------------------------------------------------------------------------
+ 				<%@ page language="java" contentType="text/html; charset=${encoding}" pageEncoding="${encoding}"%>
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<meta charset="${encoding}">
+					<title>Insert title here</title>
+					
+					<!-- spring02 project header -->
+					<%@ include file="../include/header.jsp" %>
+				
+				</head>
+				<body>
+				
+					<!-- spring02 project menu -->
+					<%@ include file="../include/menu.jsp" %>
+				
+					${cursor}
+				</body>
+				</html>
+ 				--------------------------------------------------------------------------------------------------
+		
  
  
  
