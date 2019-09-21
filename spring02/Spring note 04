@@ -2,12 +2,152 @@ lec06 1:27:00 ~
 
 4. 상품관리
  1) 파일 업로드
- 	- 일반적인 방식
+ 	- 일반적인 방식 : form을 사용.
  	- 비동기적인 방식(Ajax)
  	
- 2) 파일업로드 실습예제
+ 2) 파일업로드 실습예제 : form을 이용한 방식의 업로드 적용.
   1> 상품 테이블
    Oracle ---------------------------------------------------------------------------------------------------
+   -- clob : 최대 4G 입력가능, 한 테이블에서 여러 칼럼에 사용가능, 검색가능.
+   -- long : 최대 2G 입력가능, 한 테이블에서 1개 컬럼만 사용가능, 검색불가.
    
+	create table product (
+		product_id number,
+		product_name varchar2(50),
+		price number default 0,
+		description clob,
+		picture_url varchar2(500),
+		primary key(product_id)
+	);
+	
+	select * from product where description like '%샘플%';
+	
+	insert into product values (1,'레몬',1500,'레몬에 포함된 구연산은 피로회복에 좋습니다.','lemon.jpg');
+	insert into product values (2,'어륀지',2000,'비타민 C가 풍부합니다. 생과일 주스로 마셔.','orenge.jpg');
+	insert into product values (3,'키위',3000,'비타민 C가 매우 풍부. 다이어트, 미용에 좋음.','kiwijpg');
+	insert into product values (4,'포도',5000,'폴리페놀 많다. 항산화 작용한다.','grape.jpg');
+	insert into product values (5,'딸기',8000,'비타민 C나 플라보노이드를 다량 함유.','strawberry.jpg');
+	insert into product values (6,'귤',7000,'감기예방에 좋음','tangerine.jpg');
+	
+>>	-- 상품코드들 위한 시퀀스 생성 : mysql에서는 생성 시 auto_increament처리를 한다.
+	drop sequence seq_product;
+	create sequence seq_product;
+	start with 10;
+	increment by 1;
+	
+	insert into product values (seq_product.nextval,'사과', 1500, '사과... 맛나니?','apple.jpg');
+	
+	commit;
    
    ----------------------------------------------------------------------------------------------------------
+
+   MySql ----------------------------------------------------------------------------------------------------
+   -- clob : 최대 4G 입력가능, 한 테이블에서 여러 칼럼에 사용가능, 검색가능.
+		> MySql에서는 clob이 없음 : 예측되지 않는 문자열은 text나 varchar로.
+   -- long : 최대 2G 입력가능, 한 테이블에서 1개 컬럼만 사용가능, 검색불가.
+   
+	create table product (
+		product_id int,
+		product_name varchar(50),
+		price int default 0,
+		description text,
+		picture_url varchar(500),
+		primary key(product_id)
+	);
+	
+	// select * from product where description like '%샘플%';
+	
+	-- 데이터 추가.
+	// views/images에 jpg파일 저장.
+	insert into product values (1,'레몬',1500,'레몬에 포함된 구연산은 피로회복에 좋습니다.','lemon.jpg');
+	insert into product values (2,'어륀지',2000,'비타민 C가 풍부합니다. 생과일 주스로 마셔.','orenge.jpg');
+	insert into product values (3,'키위',3000,'비타민 C가 매우 풍부. 다이어트, 미용에 좋음.','kiwijpg');
+	insert into product values (4,'포도',5000,'폴리페놀 많다. 항산화 작용한다.','grape.jpg');
+	insert into product values (5,'딸기',8000,'비타민 C나 플라보노이드를 다량 함유.','strawberry.jpg');
+	insert into product values (6,'귤',7000,'감기예방에 좋음','tangerine.jpg');
+	
+	-- auto_increment 설정 : oracle의 sequence설정을 대체. key 설정되어 있지 않으면 오류발생.
+	alter table product modify product_id int not null auto_increment;
+		예제)====================================================================================================
+		//table 맨 앞줄에 시퀀스 컬럼생성
+		alter table product add column seq_product int first;
+		
+		//생성되어 있는 컬럼에 auto_increment설정.
+		alter table product modify seq_product int not null unique auto_increment;
+		
+		//생성하면서 auto_increment설정.
+		alter table product add column seq_product int not null unique auto_increment first;
+		=========================================================================================================
+	
+	-- seq_product.nextval 사용 불가.
+		// insert into product values (seq_product.nextval,'사과', 1500, '사과... 맛나니?','apple.jpg');
+		> 컬럼명을 명시하여 입력.
+			: insert into product (product_name,price,description,picture_url)  
+							values ('사과', 1500, '사과... 맛나니?','apple.jpg');
+	
+		> 서브쿼리 이용 - " select ifnull(max(product_id)+1,1) from product a "
+			: insert into product values 
+				((select ifnull(max(product_id)+1,1) from product a),'사과', 1500, '사과... 맛나니?','apple.jpg');
+>> auto_increment 시작 숫자 설정방법?
+   ----------------------------------------------------------------------------------------------------------------
+  
+  2> 파일 업로드를 위한 라이브러리 추가 : pom.xml에 업데이트 필요. jsp/spring에서는 fileupload기능이 없음.
+  	---------------------------------------------------------------------------------------------------------------
+  	<!-- 파일 업로드관련 라이브러리 : commons-fileupload -->
+  	<!-- https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload -->
+	<dependency>
+	    <groupId>commons-fileupload</groupId>
+	    <artifactId>commons-fileupload</artifactId>
+	    <version>1.3.3</version>
+	</dependency>
+  	
+  	** 다음단계에서 사용.
+  	<!-- 이미지 썸네일을 만들어주는 라이브러리 : imgscalr-lib -->
+  	<!-- https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib -->
+	<dependency>
+	    <groupId>org.imgscalr</groupId>
+	    <artifactId>imgscalr-lib</artifactId>
+	    <version>4.2</version>
+	</dependency>
+  	---------------------------------------------------------------------------------------------------------------
+  	
+  3> 파일 업로드를 위한 설정 : servlet-context.xml
+  	---------------------------------------------------------------------------------------------------------------
+  	<!-- 파일 업로드에 필요한 bean -->
+  	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+  		<!-- 파일업로드 최대 용량 (byte단위) -->
+  		<beans:property name="maxUploadSize" value="10485760" />
+  	</beans:bean>
+  	
+  	<!-- 파일 업로드를 위한 디렉토리 설정 : 아래와 같이 자바코드로 설정 할 수도 있음. -->
+  	<!-- String uploadPath=new String("d:/upload"); -->
+  	<beans:bean id="uploadPath" class="java.lang.String">
+  		<beans:constructor-arg value="d:/upload" />
+  	</beans:bean>
+  	---------------------------------------------------------------------------------------------------------------
+
+  4> menu.jsp 수정.
+  	<a href="${path}/upload/uploadForm">업로드테스트</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
