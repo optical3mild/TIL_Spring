@@ -2,9 +2,11 @@ package com.example.spring02.model.memo.dao;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import com.example.spring02.model.memo.dto.MemoDTO;
 
@@ -28,4 +30,14 @@ public interface MemoDAO {
 			+ "((select ifnull(max(idx)+1,1) from memo a)" + ", #{writer}, #{memo})")
 	// 위에 작성된 sql문의 변수명과 @Param("변수명")으로 표시된 변수명이 동일하여야 값이 전달됨.
 	public void insert(@Param("writer") String writer, @Param("memo") String memo);
+	
+	@Select("select * from memo where idx=#{idx}")
+	public MemoDTO memo_view(@Param("idx") int idx);
+	
+	// 개별적인 @Param 대신 dto로 묶어서 전달할 수 있음 : dto안에 변수명이 {}안과 동일하여야 한다.
+	@Update("update memo set writer=#{writer}, memo=#{memo} where idx=#{idx}")
+	public void update(MemoDTO dto);
+	
+	@Delete("delete from memo where idx=#{idx}")
+	public void delete(@Param("idx") int idx);
 }

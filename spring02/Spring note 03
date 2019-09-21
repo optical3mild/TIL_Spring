@@ -17,7 +17,7 @@ lec05 1:20:00 ~
 		--> 개발한 프로젝트 폴더 구조에서 webapp폴더가 배포되었음.
 ========================================================================================================================
 
-1. MyBatis mapper interface
+3. MyBatis mapper interface
  
 1> mybatis에서 sql query를 작성하는 방법 2가지
  1) mapper xml 파일에 작성 : 3개의 파일을 작성.
@@ -210,35 +210,128 @@ lec06~
  		> 한글설정 : page 지시어 태그와 meta태그를 삽입하면 UTF-8로 설정되어 한글폰트가 출력된다.
 		> header, menu include : 경로에 주의. home.jsp는 include폴더와 동일폴더에 위치한다.
 
-	9> 글쓰기 기능 구현
-		- memo_list.jsp 수정
-			> form으로 입력칸 작성
-		- Controller 작성 : memoService를 호출하여 메소드 실행.
-			===================================================================================================
-			@RequestMapping("insert.do")	
-				public String insert(@ModelAttribute MemoDTO dto) {
-				memoService.insert(dto);
-				return "redirect:/memo/list.do";
-			}
-			===================================================================================================
-			> @ModelAttribute : form에서 전달한 값을 받아 자동으로 dto를 생성하고 받은 값을 저장. 생략가능.
+ 4) 글쓰기 기능 구현
+	- memo_list.jsp 수정
+		> form으로 입력칸 작성
+	- Controller 작성 : memoService를 호출하여 메소드 실행.
+		===================================================================================================
+		@RequestMapping("insert.do")	
+			public String insert(@ModelAttribute MemoDTO dto) {
+			memoService.insert(dto);
+			return "redirect:/memo/list.do";
+		}
+		===================================================================================================
+		> @ModelAttribute : form에서 전달한 값을 받아 자동으로 dto를 생성하고 받은 값을 저장. 생략가능.
+	
+	- Model(DAO 인터페이스) 작성
+		===================================================================================================
+		@Insert("insert into memo (idx,writer,memo) values"
+					+ "((select ifnull(max(idx)+1,1) from memo a)" + ", #{writer}, #{memo}")
+		public void insert(@Param("writer") String writer, @Param("memo") String memo);
+		==================================================================================================
+		> mybatis query에 전달할 변수는 @Param으로 처리
+		> nvl() : oracle 함수 / coalesce() : 모든 데이터베이스에서 사용 / ifnull() : mysql에서 사용.
+		> sql문의 변수명과 @Param("변수명")으로 표시된 변수명이 동일하여야 값이 전달됨.
+		> 작성된 메서드는 서비스에서 호출되며, 전달된 매개변수의 값을 sql문에 적용하여 DB에 쿼리가 실행된다.
+		> mysql의 서브쿼리의 테이블과 메인쿼리의 작업테이블이 동일할 때, 오류발생. --> 서브쿼리의 테이블에 별칭을 붙여주면 작동.
 		
-		- Model(DAO 인터페이스) 작성
-			===================================================================================================
-			@Insert("insert into memo (idx,writer,memo) values"
-						+ "((select ifnull(max(idx)+1,1) from memo a)" + ", #{writer}, #{memo}")
-			public void insert(@Param("writer") String writer, @Param("memo") String memo);
-			==================================================================================================
-			> mybatis query에 전달할 변수는 @Param으로 처리
-			> nvl() : oracle 함수 / coalesce() : 모든 데이터베이스에서 사용 / ifnull() : mysql에서 사용.
-			> sql문의 변수명과 @Param("변수명")으로 표시된 변수명이 동일하여야 값이 전달됨.
-			> 작성된 메서드는 서비스에서 호출되며, 전달된 매개변수의 값을 sql문에 적용하여 DB에 쿼리가 실행된다.
-			> mysql의 서브쿼리의 테이블과 메인쿼리의 작업테이블이 동일할 때, 오류발생. --> 서브쿼리의 테이블에 별칭을 붙여주면 작동.
-			
-		- Service 작성
-			> dao를 호출, 컨트롤러에서 전달받은 dto에서 getter로 dao에 전달할 필드값을 추출하여 메소드 실행.
+	- Service 작성
+		> dao를 호출, 컨트롤러에서 전달받은 dto에서 getter로 dao에 전달할 필드값을 추출하여 메소드 실행.
 
-	10> 글 상세화면 구현과 수정/삭제기능
+ 5) 글 상세화면 구현과 수정/삭제기능 : REST방식.
+	- memo_list.jsp 수정 : 메모에 hyperlink 작업. href로 연결하지 않고, js로 글 번호를 넘기도록 이벤트 등록.
+		---------------------------------------------------------------------------------------------------
+		<script>
+		// hyperlink 클릭시 http://localhost/spring02/memo/view/글번호 로 이동.
+			function memo_view(idx) {
+				location.href="${path}/memo/view/"+idx;
+			}
+		</script>
+		--------------------------------------------------------------------------------------------------
+		> 파라미터 형태로 서블릿 요청 : http://localhost/spring02/memo/view.do?idx=글번호
+		> 고유주소 형태로 서블릿 요청 : http://localhost/spring02/memo/view/글번호 - REST, RESTful한 uri.
+			- REST(	REpresentativ State Transfer ): 게시물별로 고유한 주소값을 가짐.
+			- 파라미터로 전달하는 대신, 전달받은 값을 주소로 처리하기 위해 컨트롤러에서는 @PathVariable을 사용.
+	
+	- 컨트롤러에 view()메소드 추가 : @PathVariable로 변화하는 url을 받아 변수로 전달.
+		---------------------------------------------------------------------------------------------------
+		// 글번호가 PathVariable로 url에 포함되어 전달됨.
+		@RequestMapping("view/{idx}")
+		public ModelAndView view(@PathVariable int idx, ModelAndView mav) {
+			// 포워딩할 뷰의 이름
+			mav.setViewName("memo/view");
+			// 전달할 데이터
+			mav.addObject("dto", memoService.memo_view(idx));
+			return mav;
+		}
+		---------------------------------------------------------------------------------------------------
+		> @PathVariable로 지정한 매개변수의 값은 전달된 url의 형식으로 지정된 {}안의 값을 참조하여 가져오게 된다.
+		> 서비스를 호출하여 매개변수 값을 던지고, 결과를 받아 modelandview객체에 저장하여 값과 함께 지정경로로 포워딩.
+		
+	- DAO에 memo_view() 메소드 추가.
+		---------------------------------------------------------------------------------------------------
+		@Select("select * from memo where idx=#{idx}")
+		public MemoDTO memo_view(@Param("idx") int idx);
+		---------------------------------------------------------------------------------------------------
+		
+** 개발과정의 예 ======================================================================================================
+- 개발단계로 들어가 코드를 작성하기 전, 설계단계가 있음
+	> 화면설계, db설계 진행
+	> 화면설계 : 화면의 요소 구성, 어떻게 주소가 요청되면 해당 화면이 나올지 설계서에 기술되어 있음.
+	> 화면설계 기술을 바탕으로 어느부분부터 코드를 작성할 지 계획. ( DAO부터 작성할 지, Controller부터 작성할지..등등)
+		- ex) MemoController --> MemoService --> MemoServiceImpl --> MemoDAO 순서대로 작성한다...
+		- 보통 view와 controller등으로 업무를 분배하기 어려우므로, 작은 작업의 경우 기능을 통채로 개발.
+			> MemoDAO를 개발 : 한명이 전체를 작성.
+=======================================================================================================================
+	
+	- Service에 memo_view() 메소드 추가.
+		> service는 dao를 호출하여 값을 전달하고 결과를 리턴받아 리턴한다.
+	
+	- view.jsp 작성 : 수정/삭제기능.
+		> view를 작성하고, 버튼기능을 jquery로 작성. RESTful한 경로로 url을 만들어 요청을 보내도록 한다.
+			-----------------------------------------------------------------------------------------------
+			<script>
+				$(function(){
+					$("#btnUpdate").click(function(){
+						document.form1.action="${path}/memo/update/${dto.idx}";
+						document.form1.submit();
+					});
+					$("#btnDelete").click(function(){
+						if(confirm("삭제하시겠습니까?")) {
+							document.form1.action="${path}/memo/delete/${dto.idx}";
+							document.form1.submit();
+						}
+					})
+				})
+			</script>
+			-----------------------------------------------------------------------------------------------
+		> update기능
+			- Controller에 update()메소드 추가.
+				> @ModelAttribute : form에서 전달한 값을 받아 자동으로 dto를 생성하고 받은 값을 저장. 생략가능.
+				> 서비스 호출, @ModelAttribute로 받은 값을 메소드로 넘김.
+				> 실행 후에는 목록으로 리다이렉트.
+			- DAO에 update() 추가.
+				--------------------------------------------------------------------------------------------------
+				// 개별적인 @Param 대신 dto로 묶어서 전달할 수 있음 : dto안에 변수명이 {}안과 동일하여야 한다.
+				@Update("update memo set writer=#{writer}, memo=#{memo} where idx=#{idx}")
+				public void update(MemoDTO dto);
+				--------------------------------------------------------------------------------------------------
+			- Service에 update()추가.
+				> dao를 호출하여 값을 전달, 메소드 실행.
+		> delete기능
+			- Controller에 delete()메소드 추가.
+				> @PathVariable로 지정한 매개변수의 값은 전달된 url의 형식으로 지정된 {}안의 값을 참조하여 가져오게 된다.
+				> 실행 후에는 목록으로 리다이렉트.
+			- DAO에 delete() 추가.
+				--------------------------------------------------------------------------------------------------
+				@Delete("delete from memo where idx=#{idx}")
+				public void delete(@Param("idx") int idx);
+				--------------------------------------------------------------------------------------------------
+			- Service에 delete()추가.
+				> dao를 호출하여 값을 전달, 메소드 실행.
+
+ lec 06 1:27:00 3.완료.
+
 
 
 

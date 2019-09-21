@@ -30,7 +30,7 @@
 			<tr>
 				<td>${row.idx }</td>
 				<td>${row.writer }</td>
-				<td>${row.memo }</td>
+				<td><a href="#" onclick="memo_view('${row.idx }')"/>${row.memo }</td>
 				<td>
 					<fmt:formatDate value="${row.post_date }" pattern="yyyy-MM-dd HH:mm:ss" />
 				</td>
@@ -39,4 +39,9 @@
 	</tbody>
 </table>
 </body>
+	<script>
+		function memo_view(idx) {
+			location.href="${path}/memo/view/"+idx;
+		}
+	</script>
 </html>
