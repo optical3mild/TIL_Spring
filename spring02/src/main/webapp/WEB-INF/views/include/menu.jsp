@@ -8,7 +8,10 @@
 			<a href="${path }">Home</a>	|	
 			<a href="${path }/memo/list.do">메모장</a>	|	
 			<a href="${path }/upload/uploadForm">업로드테스트</a>	|	
-			<a href="${path }/shop/product/list.do">상품목록</a>	|	
+			<a href="${path }/shop/product/list.do">상품목록</a>	|
+			<c:if test="${sessionScope.userid != null }">
+				<a href="${path }/shop/cart/list.do">장바구니</a>	|	
+			</c:if>	
 		</td>
 		<td class="login">
 			<c:choose>

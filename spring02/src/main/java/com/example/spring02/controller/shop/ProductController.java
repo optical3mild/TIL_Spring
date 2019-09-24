@@ -1,4 +1,4 @@
-package com.example.spring02.controller.product;
+package com.example.spring02.controller.shop;
 
 import javax.inject.Inject;
 

@@ -307,9 +307,7 @@ lec 08 ~
 	- login.jsp 수정.
 		> <c:if>로 로그아웃이후 표시할 내용을 나타냄.
 
- 13> 장바구니 기능.
- 	- product_detail.jsp 수정 : 장바구니에 넣기 버튼, 수량선택 삽입.
-	- 장바구니에 넣기 버튼을 눌렀을 때 로그인 확인하여 로그인 되어있지 않으면 로그인 창으로 이동.
+ 13> 장바구니 기능 기초작업, 목록출력 기능.
  	- 장바구니 테이블 생성
 	 	Oracle ======================================================================================================
 		  	create table cart (
@@ -344,6 +342,11 @@ lec 08 ~
 				// alter table cart drop constraint cart_productid_fk; --> oracle
 				alter table cart drop foreign key cart_productid_fk; --> 인덱스 남음.
 			
+			- auto increment설정
+			alter table cart modify cart_id int not null auto_increment;
+
+			- 더미데이터	
+			insert into cart (userid,product_id,amount) values ('kim',1,10);
 		============================================================================================================
 		> userid 컬럼에 foreign key 설정
 			- alter table 테이블 foreign key(컬럼) references 테이블(컬럼)
@@ -353,6 +356,115 @@ lec 08 ~
 				> "테이블_컬럼_키의 약자" 형식으로 지정. 
 				> cart 테이블의 userid 컬럼에 foreign key 제약조건을 설정한것을 알 수 있음.
 				> 데이터 무결성 유지 : 이후 join을 수행 할 때, 각 테이블에서 연결할 컬럼의 필드가 일치하도록 만듬.
+
+	- 기본 package : ~.shop이용.
+	- 전체 흐름 : CartController --> CartService --> CartDAO --> cartMapper.xml
+	- CartDTO 작성 : 추후 join할 것을 고려하여 필드 작성.
+	- CartDAO, CartDAOImpl 작성
+		> @Repository (= @Component: 구버전) : spring에서 관리하는 bean으로 등록
+		> @Inject SqlSession : mybatis sql실행객체
+		> listCart() 작성
+			- sqlSession.selectList("cart.listCart", userid);
+				> userid를 받아 sqlSession의 selectList()실행. 
+				> mapper의 namespace가 cart, id가 listCart인 select태그에 있는 sql에 userid를 전달하여 쿼리를 실행.
+	- cartMapper.xml 작성
+		> 3개의 table을 join
+			- 김철수라는 사람이 레몬 10개를 장바구니에 등록한 것을 조회 : 김철수, 레몬, 10
+				> SELECT cart_id, m.userid, m.name, p.product_id, product_name, amount, price, price*amount money 
+						FROM member m, cart c, product p WHERE m.userid=c.userid and p.product_id=c.product_id;
+				> price*amount money : alias 계산식. price*amount의 결과값을 money라는 컬럼 제목으로 출력.
+				> m.userid : join한 테이블에 공통적으로 들어가 있는 컬럼의 경우, 어느 테이블의 이름인지 명확히 표시.		
+			- 현재 로그인한 사람의 장바구니 출력
+				> where절에 조건 추가 : and m.userid="아이디"
+		> 매퍼는 업무단위별로 파일을 나누어 작성하는 것이 관리하기 편함 : cartMapper추가.
+		> namespace를 cart로 변경하고 태그안에 id가 listCart인 select태그를 생성하고 sql문을 작성한다.
+			--------------------------------------------------------------------------------------------------
+			<mapper namespace="cart">
+				<select id="listCart" resultType="com.example.spring02.model.shop.dto.CartDTO'>
+					SELECT cart_id, m.userid, m.name, p.product_id, product_name, amount, price*amount money 
+						FROM member m, cart c, product p 
+						WHERE m.userid=c.userid AND p.product_id=c.product_id AND m.userid = #{userid}
+				</select>
+			</mapper>
+			--------------------------------------------------------------------------------------------------
+	- CartService, CartServiceImpl 작성
+		> DAO와 동일한 명칭/기능의 메소드 생성
+		> @Service : spring에서 관리하는 bean으로 등록
+		> @Inject CartDAO cartDao : 의존관계 주입
+		> listCart(String userid) : dao를 호출하여 매개변수로 값을 넘겨주고 메소드를 실행, 값을 리턴받아 컨트롤러로 전달.
+	
+	- menu.jsp에 장바구니 추가
+		> 로그인을 해야 볼수 있도록 메뉴를 작성 : jstl <c:if>, sessionScope이용.
+
+	- CartController 작성
+		> @Controller : spring에서 관리하는 bean으로 등록
+		> @Inject CartService cartService : cart서비스를 호출하여 메소드를 실행하고 리턴값을 받아 처리.
+		> 장바구니 목록 출력 : list.do
+			- 세션변수 확인 : 사용자 확인/로그인 여부 check를 위해 사용자 id를 session에서 확인
+				> String userid = (String)session.getAttribute("userid");
+			- 로그인한 경우
+				> if(userid != null) : 서비스를 호출하여 목록을 받아옴.
+				> 받아온 목록을 hashmap에 합쳐서 전송 : 보낼 자료가 많은 경우, put()으로 hashMap에 합쳐서 전송.
+				> hashmap으로 묶어서 보내지 않는경우, mav에 따로따로 저장하여도 무방.
+			- 로그인하지 않은 경우 userid <-- null
+				> return new ModelAndView("member/login", "", null) : 빈값과 null을 전송.
+		
+
+	- cart_list.jsp 작성
+		> 수정/삭제 기능을 위해서는 table의 기본키 값이 필요. 목록을 받아올 때 table의 기본키 값을 받아옴.
+		> 받아온 값 중 필요하나 표시될 필요는 없는 경우, hidden으로 숨긴다. 
+
+ 14> 장바구니 등록기능
+ 	- product_detail.jsp 수정 : 장바구니에 넣기 버튼, 수량선택 삽입.
+	- 장바구니에 넣기 버튼을 눌렀을 때 로그인 확인하여 로그인 되어있지 않으면 로그인 창으로 이동.
+	- 장바구니 등록기능 : insert.do
+		> 로그인이 되어있지 않은경우, 로그인 화면으로 이동.
+		> 로그인 확인 후 insert처리, 장바구니 목록으로 이동.
+	- Controller에 insert()추가.
+		> 화면에서 넘어가는 값 : 선택된 물품 id, 수량을 컨트롤러에 넘김
+		> 사용자 정보는 session에서 가져옴 (로그인이 되어있으므로)
+		> @ModelAttribute : form에서 넘어온 값을 담는 변수로 설정.
+			- form에서 넘어온 값을 각각 매개변수로 받아도 되지만, 한번에 넘겨 작업하므로 dto에 담아 처리한다.
+		> session을 확인하여 userid변수가 존재하는지 확인하여 로그인 여부를 판별한다.
+		> 로그인이 되어있으면 userid값을 dto에 저장한다.
+		> 저장한 dto를 호출한 서비스 메소드의 매개변수로 넘겨 실행한 후 목록으로 리다이렉트 한다.
+	- Service에 insert() 수정 : dao를 호출하여 값을 넘긴다.
+	- DAO insert() 수정 : sqlSession을 호출하고 insert메소드를 실행하여 설정된 쿼리를 실행한다.
+	- mapper에 <insert id="insert>추가작성
+		> insert into cart(cart_id,userid,product_id,amount) 
+			values ((select ifnull(max(idx)+1,1) from cart a), #{userid},#{product_id},#{amount})
+			- cart_id는 auto_increment이므로, 확인하여 존재하는 값보다 1크게 들어가도록 한다.
+			- 자동증가이므로, 위와 같이 서브쿼리를 넣어 작성하거나 대상항목 자체를 입력하지 않고 진행하여도 된다.
+				> insert into cart(userid,product_id,amount) values (#{userid},#{product_id},#{amount})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

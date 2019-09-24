@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
+<mapper namespace="cart">
+	<select id="listCart" resultType="com.example.spring02.model.shop.dto.CartDTO">
+		SELECT cart_id, m.userid, m.name, p.product_id, product_name, amount, price, price*amount money 
+			FROM member m, cart c, product p 
+			WHERE m.userid=c.userid AND p.product_id=c.product_id AND m.userid = #{userid}
+	</select>
+	
+	<insert id="insert">
+		insert into cart(userid,product_id,amount) values (#{userid},#{product_id},#{amount})
+		<!-- insert into cart(cart_id,userid,product_id,amount) 
+			values ((select ifnull(max(idx)+1,1) from cart a), #{userid},#{product_id},#{amount})  -->
+	</insert>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
