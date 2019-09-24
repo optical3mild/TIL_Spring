@@ -270,17 +270,71 @@ lec07~
 lec 07 종료.
 
 lec 08 ~
- 12> login.jsp 작성
- 
+ 12> 로그인 기능
+ 	- login.jsp 작성
+	- MemberController 작성
+		> Spring에서 관리 : @Contoller
+		> member/login.do : 로그인 페이지로 이동
+		> member/login_check.do : 로그인 실행
+	- MemberDTO 작성
+		> 테이블 작성
+		MySql ==================================================================================================
+		create table member (
+	 		userid VARCHAR(50) not null primary key,
+	 		passwd VARCHAR(50) not null,
+	 		name VARCHAR(50) not null,
+	 		email VARCHAR(50),
+	 		join_data datetime DEFAULT NOW()
+	 	);
+
+		insert into member (userid, passwd, name, email) values ('kim', '1234', '김철수', 'kim@gmail.com');
+ 		========================================================================================================
+	- 전체 흐름
+		> MemberController( : @Controller) --> MemberService(+Impl : @Service) 
+				--> MemberDAO(+Impl : @Repository) --> memberMapper.xml
+	- MemberDAO, MemberDAOImpl
+		> spring 에서 관리 : @Repository
+		> MyBatis sqlSession 호출하여 쿼리 실행, 결과값을 받음
+		> @Inject SqlSession : 의존관계 주입
+		> 삼항연산자를 이용하여 리턴값이 null이면 false를 리턴, 다른 값이 들어오면 true를 리턴.
+	- MemberService, MemberServiceImpl
+		> spring 에서 관리 : @Service
+		> DAO 호출하여 메소드 실행, 결과를 받아 controller로 리턴.
+		> @Inject MemberDAO memberDao : 의존관계 주입.
+		
+	====정리===================================================================================================			
+	 MemberController 	-->  MemberService	-->   MemberDAO		-->   memberMapper.xml
+		@Controller				@Service			@Repository
+		@Inject					@Inject				@Inject
+		MemberService;			MemberDAO;			SqlSession;
+	===========================================================================================================
+		> 세션변수에 값 저장 : id, name
+			- 1. DAO의 loginCheck method를 수정하여 이름을 리턴받는다. (현재 리턴값 true/false)
+			- 2. 기능 추가.
+				> MemberService에 method를 추가
+				> MemberDAO에 동일 method를 추가
+				> memberMapper에 query 추가
+				> MemberServiceImpl의 login_check()에서 호출하여 해당 user의 이름을 리턴 받는다.
+				> 리턴받은 값을 session에 저장하고, 앞서 받은 결과값인 result를 controller로 리턴.
+
+	- MemberController의 login_check작성
+		> @Inject MemberService memberService;
+		> 서비스를 호출하여 결과값을 받는다 : loginCheck();
+			- 결과값에 따라 페이지를 지정하고 값을 저장하여 포워딩 한다.
+
+	- home.jsp에서 로그인 성공 시 보여줄 문구를 작성 : jstl, sessionScope
 	
+	====scope영역===============================================================================================
+	  현재		 요청+응답		사용자			서버단위		에 저장.
+	 pageScope < requestScope < sessionScope < applicationScope
+	
+	--> 각 영역에 단일한 변수로 저장됨.
+	============================================================================================================
 
-
-
-
-
-
-
-
+** 로그인 / 장바구니 기능 누락부분
+	- menu에 로그인 메뉴 추가.
+	- detail.jsp에 장바구니에 넣기 버튼 삽입.
+	- 장바구니에 넣기 버튼을 눌렀을 때 로그인 확인하여 로그인 창으로 이동.
 
 
 

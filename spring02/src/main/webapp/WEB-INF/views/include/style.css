@@ -7,3 +7,10 @@ a:active { text-decoration: none; color: yellow; }
 table , th, td {
 	border : 1px solid black;
 }
+
+.menu {
+	border : none;
+}
+.menu > td {
+	border : none;
+}

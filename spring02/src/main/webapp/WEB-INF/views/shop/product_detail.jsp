@@ -36,6 +36,20 @@
 					<td>&nbsp;</td>
 					<td>${dto.description }</td>
 				</tr>
+				<tr>
+					<td colspan="2">
+						<form name="form1" method="post" action="${path }/shop/cart/insert.do">
+							<input type="hidden" name="product_id" value="${dto.product_id }">
+							<select name="amount">
+								<c:forEach begin="1" end="10" var="i">
+									<option value="${i }">${i }</option>
+								</c:forEach>
+							</select>&nbsp; 계
+							<input type="submit" value="장바구니에 담기">
+						</form>
+						<a href="${path }/shop/product/list.do">상품목록</a>
+					</td>
+				</tr>
 			</table>
 		</td>
 	</tr>

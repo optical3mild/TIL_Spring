@@ -25,6 +25,11 @@
 		<tr>
 			<td colspan="2" align="center">
 				<input type="button" id="btnLogin" value="로그인">
+				<c:if test="${message == 'error' }">
+					<div style="coler:red";>
+						아이디 또는 비밀번호가 일치하지 않습니다.
+					</div>
+				</c:if>
 			</td>
 		</tr>
 	</table>
@@ -33,20 +38,21 @@
 <script type="text/javascript">
 	$(function(){
 		$("#btnLogin").click(function(){
-			var userid = $("#userid").val();
+			var userid = $("#userid").val(); //태그의 value 속성 값.
 			var passwd = $("#passwd").val();
 			if(userid=="") {
 				alert("아이디를 입력하세요");
-				$("#userid").focus();
-				return;
+				$("#userid").focus(); // 입력 포커스 이동.
+				return; // 함수 종료.
 			}
 			if(passwd=="") {
 				alert("비밀번호를 입력하세요");
 				$("#passwd").focus();
 				return;
 			}
-			document.form1.action="${path}/member/login_check.do";
-			document.form1.submit();
+			// 폼 데이터를 서버로 제출
+			document.form1.action="${path}/member/login_check.do"; // 데이터를 처리할 주소를 지정.
+			document.form1.submit(); // 지정한 주소로 제출.
 		});
 	})
 </script>
