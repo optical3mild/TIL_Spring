@@ -42,4 +42,15 @@ public class MemberController {
 		}
 		return mav;
 	}
+	
+	@RequestMapping("logout.do")
+	public ModelAndView logout(HttpSession session, ModelAndView mav) {
+		// 세션 초기화
+		// 세션 초기화는 session.invalidate()로 할 수 있으나, 전체적인 구조를 지키기 위해 서비스로 넘김.
+		memberService.logout(session);
+		// login.jsp로 이동.
+		mav.setViewName("member/login");
+		mav.addObject("message","logout");
+		return mav;
+	}
 }

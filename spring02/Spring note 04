@@ -231,46 +231,13 @@ lec07~
 		> DAO에서 selectOne의 매개변수로 전달받은 검색인자를 #{}로 받아 처리.
 	- 상세페이지 : /shop/product_detail.jsp 작성.
 	
-  11> 장바구니 테이블 생성.
-  	Oracle ======================================================================================================
-	  	create table cart (
-	  		cart_id number not null primary key,
-	  		userid varchar2(50) not null,
-	  		product_id number not null,
-	  		amount number default 0
-	  	);
-
-		-- userid 컬럼에 foreign key 설정
-		alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
-		-- 제약조건 삭제
-		alter table cart drop constraint cart_productid_fk;
-	=============================================================================================================
-	
-	MySql =======================================================================================================
-		** spring 01 project의 member table을 사용.
-		
-		create table cart (
-	  		cart_id int not null primary key,
-	  		userid varchar(50) not null,
-	  		product_id int not null,
-	  		amount int default 0
-	  	);
-		
-		-- userid 컬럼에 foreign key 설정
-		alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
-	============================================================================================================
-	- userid 컬럼에 foreign key 설정
-		> alter table 테이블 foreign key(컬럼) references 테이블(컬럼)
-		> alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
-			- member 테이블의 userid에 있는 값만 참조하여 저장됨. 그 외에는 불가.
-		> cart_userid_fk 
-			- "테이블_컬럼_키의 약자" 형식으로 지정. 
-			- cart 테이블의 userid 컬럼에 foreign key 제약조건을 설정한것을 알 수 있음.
+  ** 장바구니 테이블 생성. --> 12> 장바구니 기능에서 다시.
+  
 
 lec 07 종료.
 
 lec 08 ~
- 12> 로그인 기능
+ 11> 로그인 기능
  	- login.jsp 작성
 	- MemberController 작성
 		> Spring에서 관리 : @Contoller
@@ -331,13 +298,61 @@ lec 08 ~
 	--> 각 영역에 단일한 변수로 저장됨.
 	============================================================================================================
 
-** 로그인 / 장바구니 기능 누락부분
-	- menu에 로그인 메뉴 추가.
-	- detail.jsp에 장바구니에 넣기 버튼 삽입.
-	- 장바구니에 넣기 버튼을 눌렀을 때 로그인 확인하여 로그인 창으로 이동.
+	- menu.jsp 수정.
+		> 로그인 링크를 jstl <c:choose>, <c:otherwise>, <c:when>을 이용하여 수정.
+	- Controller 수정.
+		> logout.do : logout()추가.
+			- 세션 초기화 작업 필요 : 서비스를 호출하여 logout(session)실행.
+			- 세션 초기화는 session.invalidate()로 할 수 있으나, 전체적인 구조를 지키기 위해 서비스로 넘김.
+	- login.jsp 수정.
+		> <c:if>로 로그아웃이후 표시할 내용을 나타냄.
 
-
-
+ 13> 장바구니 기능.
+ 	- product_detail.jsp 수정 : 장바구니에 넣기 버튼, 수량선택 삽입.
+	- 장바구니에 넣기 버튼을 눌렀을 때 로그인 확인하여 로그인 되어있지 않으면 로그인 창으로 이동.
+ 	- 장바구니 테이블 생성
+	 	Oracle ======================================================================================================
+		  	create table cart (
+		  		cart_id number not null primary key,
+		  		userid varchar2(50) not null,
+		  		product_id number not null,
+		  		amount number default 0
+		  	);
+	
+			-- userid 컬럼에 foreign key 설정
+			alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
+			-- 제약조건 삭제
+			alter table cart drop constraint cart_productid_fk;
+		=============================================================================================================
+		
+		MySql =======================================================================================================
+			** spring 01 project의 member table을 사용.
+			
+			create table cart (
+		  		cart_id int not null primary key,
+		  		userid varchar(50) not null,
+		  		product_id int not null,
+		  		amount int default 0
+		  	);
+			
+			** 외래키 추가 : cart-member/ cart-product
+			 - userid 컬럼에 foreign key 설정
+				alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
+			 - product_id 컬럼에 foreign key 설정
+				alter table cart add constraint cart_productid_fk foreign key(product_id) references product(product_id);
+			** 제약조건(외래키) 삭제
+				// alter table cart drop constraint cart_productid_fk; --> oracle
+				alter table cart drop foreign key cart_productid_fk; --> 인덱스 남음.
+			
+		============================================================================================================
+		> userid 컬럼에 foreign key 설정
+			- alter table 테이블 foreign key(컬럼) references 테이블(컬럼)
+			- alter table cart add constraint cart_userid_fk foreign key(userid) references member(userid);
+				> member 테이블의 userid에 있는 값만 참조하여 저장됨. 그 외에는 불가.
+			- cart_userid_fk 
+				> "테이블_컬럼_키의 약자" 형식으로 지정. 
+				> cart 테이블의 userid 컬럼에 foreign key 제약조건을 설정한것을 알 수 있음.
+				> 데이터 무결성 유지 : 이후 join을 수행 할 때, 각 테이블에서 연결할 컬럼의 필드가 일치하도록 만듬.
 
 
 

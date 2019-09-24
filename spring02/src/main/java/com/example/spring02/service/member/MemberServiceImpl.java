@@ -31,8 +31,7 @@ public class MemberServiceImpl implements MemberService {
 
 	@Override
 	public void logout(HttpSession session) {
-		// TODO Auto-generated method stub
-
+		session.invalidate();
 	}
 
 	@Override

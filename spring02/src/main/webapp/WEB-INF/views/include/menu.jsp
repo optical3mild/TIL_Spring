@@ -10,12 +10,19 @@
 			<a href="${path }/upload/uploadForm">업로드테스트</a>	|	
 			<a href="${path }/shop/product/list.do">상품목록</a>	|	
 		</td>
-		<td style="align:right">
-			<a href="${path }/member/login.do">로그인</a>
+		<td class="login">
+			<c:choose>
+				<c:when test="${sessionScope.userid == null }">
+					<!-- 로그인 하지 않은 상태 : 로그인페이지 연결 -->
+					<a href="${path }/member/login.do">로그인</a>
+				</c:when>
+				<c:otherwise>
+					<!-- 로그인한 상태 : 로그아웃 servlet연결 -->
+					${sessionScope.name }님이 로그인 중 입니다.
+					<a href="${path }/member/logout.do">로그아웃</a>
+				</c:otherwise>
+			</c:choose>
 		</td>
 	</tr>
 </table>
-
-
-
 <hr>

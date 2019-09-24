@@ -9,4 +9,4 @@
 <script src="${path }/include/jquery-3.3.1.min.js"></script>
 <!-- <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>  -->
 
-<link rel ="stylesheet" href="${path }/include/style.css?ver=1" />
+<link rel ="stylesheet" href="${path }/include/style.css?ver=0" />

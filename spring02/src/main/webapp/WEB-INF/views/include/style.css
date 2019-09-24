@@ -10,7 +10,11 @@ table , th, td {
 
 .menu {
 	border : none;
+	width : 100%;
 }
-.menu > td {
+.menu td {
 	border : none;
+}
+.menu .login {
+	text-align : right;
 }

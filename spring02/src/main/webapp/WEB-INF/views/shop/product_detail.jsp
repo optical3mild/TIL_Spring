@@ -44,7 +44,7 @@
 								<c:forEach begin="1" end="10" var="i">
 									<option value="${i }">${i }</option>
 								</c:forEach>
-							</select>&nbsp; 계
+							</select>&nbsp;개&nbsp;
 							<input type="submit" value="장바구니에 담기">
 						</form>
 						<a href="${path }/shop/product/list.do">상품목록</a>
