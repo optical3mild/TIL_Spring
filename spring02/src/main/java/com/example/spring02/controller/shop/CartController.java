@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.model.shop.dto.CartDTO;
@@ -32,7 +33,16 @@ public class CartController {
 		if(userid != null) { //로그인한 경우
 			// 서비스를 호출하여 목록을 받아옴.
 			List<CartDTO> list = cartService.listCart(userid);
+			// 장바구니 합계 계산
+			int sumMoney = cartService.sumMoney(userid);
+			// 배송료 계산
+			int fee = sumMoney >= 30000 ? 0 : 2500;
+			
 			// 보낼 자료가 많은 경우, hashMap에 합쳐서 전송.
+			map.put("sumMoney", sumMoney); // 장바구니 금액 합계
+			map.put("fee", fee);	// 배송료
+			map.put("sum", sumMoney+fee);	//총 합계금액
+
 			map.put("list", list);	// 맵에 자료 추가
 			map.put("count", list.size());
 			// hashmap으로 묶어서 보내지 않는경우, mav에 따로따로 저장하여도 무방.
@@ -56,6 +66,12 @@ public class CartController {
 		// 장바구니에 insert처리 후 장바구니 목록으로 이동.
 		dto.setUserid(userid);
 		cartService.insert(dto);
+		return "redirect:/shop/cart/list.do";
+	}
+	
+	@RequestMapping("delete.do")
+	public String delete(@RequestParam int cart_id) {
+		cartService.delete(cart_id);
 		return "redirect:/shop/cart/list.do";
 	}
 }

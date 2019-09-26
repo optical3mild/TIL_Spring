@@ -40,10 +40,19 @@
 						</td>
 					</tr>
 				</c:forEach>
+					<tr>
+						<td colspan="5" align="right">
+							장바구니 금액 합계 : ${map.sumMoney }<br>
+							배송료 : ${map.fee }<br>
+							총합계 : ${map.sum }
+						</td>
+					</tr>
 			</table>
+			<button id="btnUpdate">수정</button>
+			<button type="button" id="btnDelete">장바구니 비우기</button>
 		</form>
-		
 	</c:otherwise>
 </c:choose>
+<button type="button" id="btnList">상품목록</button>
 </body>
 </html>

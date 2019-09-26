@@ -33,10 +33,10 @@ public class CartDAOImpl implements CartDAO {
 		return sqlSession.selectList("cart.listCart", userid);
 	}
 
+	// 장바구니 개별상품 삭제
 	@Override
 	public void delete(int cart_id) {
-		// TODO Auto-generated method stub
-
+		sqlSession.delete("cart.delete", cart_id);
 	}
 
 	@Override
@@ -51,10 +51,10 @@ public class CartDAOImpl implements CartDAO {
 
 	}
 
+	// 장바구니 금액 합계 계산
 	@Override
 	public int sumMoney(String userid) {
-		// TODO Auto-generated method stub
-		return 0;
+		return sqlSession.selectOne("cart.sumMoney", userid);
 	}
 
 	@Override
