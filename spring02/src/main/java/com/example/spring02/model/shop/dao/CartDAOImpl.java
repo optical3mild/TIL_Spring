@@ -41,7 +41,7 @@ public class CartDAOImpl implements CartDAO {
 
 	@Override
 	public void deleteAll(String userid) {
-		// TODO Auto-generated method stub
+		sqlSession.delete("cart.deleteAll",userid);
 
 	}
 
@@ -69,9 +69,10 @@ public class CartDAOImpl implements CartDAO {
 
 	}
 
+	// 장바구니 수정
 	@Override
 	public void modifyCart(CartDTO dto) {
-		// TODO Auto-generated method stub
+		sqlSession.update("cart.modifyCart",dto);
 
 	}
 

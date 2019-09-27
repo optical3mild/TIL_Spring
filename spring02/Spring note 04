@@ -515,28 +515,68 @@ lec 08 ~
 	<실무환경>
 	개발 : 윈도우즈
 	배포 : 유닉스(리눅스) 서버에 업로드, 톰캣서버 재시작
+===========================================================================================================
 
+	- 장바구니 비우기
+		> 현재 userid와 동일한 레코드 전체 검색 : select * from cart where userid=#{userid}
+		> 현재 userid와 동일한 레코드 전체 삭제	: delete from cart where userid=#{userid}
+		
+		> cart_list.jsp 버튼 작업 : jquery로 버튼 액션 작업
+			- html5 버튼 종류
+			===============================================================================================
+			 <input type="button" value="라벨"> --> 제출 기능 없음
+			 <input type="submit" value="라벨"> --> 제출 기능 있음
+			 <input type="reset" value="라벨"> --> 입력값 초기화
+			 <input type="image" value="라벨"> --> 제출 기능 있음. 이미지를 이용하여 버튼 생성.
+			 
+			 <button>라벨</button> --> 제출기능 있음
+			 <button type="submit">라벨</button> --> 제출기능 있음
+			 <button type="button">라벨</button> --> 제출기능 없음
+			===============================================================================================
+			
+			- jquery 기초
+			===============================================================================================
+			 > $(객체 or 태그) --> selector(선택자)
+			 
+			 > document : 최상위 문서 객체
+			 	- $(document).ready(function(){}); = $(function(){}); <-- 축약형
+			 		: 동일표현. 문서가 준비되었으면 function()의 {}안 내용을 실행하라는 의미.
+			 
+			 > $("#btnDelete").click(function(){});
+				- # --> id, . --> class
+			 > confirm() : 확인함수. 확인 선택 --> true / 취소 선택 --> false
+			===============================================================================================
+			
+		> Controller : deleteAll() 작성.
+			- 로그인 하지 않은 상태에서 주소를 이용해 요청 시 삭제처리 되지 않도록 조정필요.
+				: delete(), deleteAll() 모두 세션처리 후 코드가 실행되도록 처리(delete()는 AOP등 다른방법으로 처리예정),
+>>					 잘못된 접근이라는 문구 출력 후 로그인으로 리다이렉트 되도록 처리
+		> Service : deleteAll() 작성.
+		> DAO : deleteAll() 작성.
+		> cartMapper : <delete id="deleteAll"> 작성.
 
+	- 장바구니 수정기능
+		> 동일 name의 type이 hidden인 여러개의 input태그에서 각각 다른값을 목록으로 받아야 함. --> 배열로 받음
+			<input type="hidden" name="product_id" value="6">
+			<input type="hidden" name="product_id" value="7">
+			<input type="hidden" name="product_id" value="8">
+			
+		> Controller : update() 작성
+			- product_id와 amount는 각각 목록에 있는 상품의 이름과 각각의 양을 의미. 목록으로 받음(for문).
+		> Service : modifyCart() 작성
+		> DAO : modifyCart() 작성
+		> cartMapper : <update id="modifyCart"> 작성 
+			- * 500오류 발생 
+				: sql문 확인 후, 서버를 완전히 끄고 다시 실행. xml이 적용되지 않은 경우. 서버를 다시 실행시켜야 함
+		> 동일 상품이 중복되어 생성, 동일 product_id로 여러개가 등록되므로 수정 시 전부 동일한 값으로 변경됨
+			- key 값을 넘겨야 각각 적용할 수 있음. 
+			- cart_list.jsp에서 hidden값을 product_id -> cart_id로 변경.
+			- Controller, mapper의 product_id를 cart_id로 변경. (service와 dao는 dto를 전달.)
+		> 수량을 0으로 수정한 경우, 목록에서 삭제
+			- Controller 수정 : 수량이 0인것을 확인 후 서비스를 호출하여 delete()실행.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+>> 추가하여야 하는 기능 ========================================================================================
+	- 장바구니 담기 수정
+		> 장바구니에 이미 동일 상품이 등록되어 있는경우, 수량을 더하여 등록
+================================================================================================================
+lec09 57:00

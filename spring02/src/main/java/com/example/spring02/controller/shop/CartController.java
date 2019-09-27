@@ -69,9 +69,46 @@ public class CartController {
 		return "redirect:/shop/cart/list.do";
 	}
 	
+	// 장바구니 개별상품 삭제
 	@RequestMapping("delete.do")
+	//public String delete(HttpSession session, @RequestParam int cart_id) { // 세션처리는 AOP등의 방법으로 처리예정.
 	public String delete(@RequestParam int cart_id) {
-		cartService.delete(cart_id);
+		// 세션변수 조회(로그인 여부 검사)
+//		String userid = (String)session.getAttribute("userid");
+//		if(userid != null) { // 로그인한 상태
+			cartService.delete(cart_id);
+//		}
+		return "redirect:/shop/cart/list.do";
+	}
+	
+	@RequestMapping("deleteAll.do")
+	public String deleteAll(HttpSession session) {
+		// 세션변수 조회(로그인 여부 검사)
+		String userid = (String)session.getAttribute("userid");
+		if(userid != null) { // 로그인한 상태
+			// 장바구니를 비운다
+			cartService.deleteAll(userid);
+		}
+		// 장바구니 목록으로 이동
+		return "redirect:/shop/cart/list.do";
+	}
+	
+	@RequestMapping("update.do")
+	public String update(@RequestParam int[] amount, @RequestParam int[] cart_id, HttpSession session) {
+		String userid = (String)session.getAttribute("userid");
+		if(userid != null) {
+			for(int i=0; i<cart_id.length; i++) {
+				if(amount[i] == 0) {	// 수량이 0이면 레코드 삭제
+					cartService.delete(cart_id[i]);
+				} else {	// 0이 아닌경우 수정.
+					CartDTO dto = new CartDTO();
+					// dto.setUserid(userid);	mapper에서 key값인 cart_id를 받으므로 확인할 필요없음.
+					dto.setCart_id(cart_id[i]);
+					dto.setAmount(amount[i]);
+					cartService.modifyCart(dto);
+				}
+			}
+		}
 		return "redirect:/shop/cart/list.do";
 	}
 }

@@ -32,7 +32,7 @@
 						<td>${row.price }</td>
 						<td>
 							<input type="number" name="amount" value="${row.amount }">
-							<input type="hidden" name="product_id" value="${row.product_id }">
+							<input type="hidden" name="cart_id" value="${row.cart_id}">
 						</td>
 						<td>${row.money }</td>
 						<td>
@@ -55,4 +55,17 @@
 </c:choose>
 <button type="button" id="btnList">상품목록</button>
 </body>
+<script type="text/javascript">
+$(function(){
+	$("#btnList").click(function(){
+		//장바구니 목록으로 이동
+		location.href="${path}/shop/product/list.do";
+	})
+	$("#btnDelete").click(function(){
+		if(confirm("장바구니를 비우시겠습니까?")){
+			location.href="${path}/shop/cart/deleteAll.do";
+		}
+	});
+});
+</script>
 </html>
