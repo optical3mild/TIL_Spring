@@ -33,6 +33,7 @@
 	<!-- 주의: 아래와 같이 입력하면 해당패키지의 하위 패키지 내에서만 검색하므로, 해당패키지에 바로 포함된 클래스들은 무시된다. -->
 	<!-- <context:component-scan base-package="com.example.spring02.*" />  -->
 
+<!-- 파일업로드 관련설정 -->
 	<!-- 파일 업로드에 필요한 bean -->
   	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
   		<!-- 파일업로드 최대 용량 (byte단위) -->

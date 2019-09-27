@@ -43,8 +43,7 @@ public class ProductDAOImpl implements ProductDAO {
 
 	@Override
 	public void insertProduct(ProductDTO dto) {
-		// TODO Auto-generated method stub
-
+		sqlSession.insert("product.insert",dto);
 	}
 
 	@Override
