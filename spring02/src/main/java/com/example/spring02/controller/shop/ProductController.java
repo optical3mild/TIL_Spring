@@ -62,8 +62,11 @@ public class ProductController {
 			// 첨부파일의 이름을 가져옴.
 			filename=dto.getFile1().getOriginalFilename();
 			try {
-				//업로드할 디렉토리 : views의 images의 실제 디렉토리로 설정.
-				String path = "E:\\workshop\\EGov\\TIL_Spring\\spring02\\src\\main\\webapp\\WEB-INF\\views\\images\\"; 
+				//업로드할 디렉토리 : views의 images의 개발 디렉토리로 설정.
+				// String path = "E:\\workshop\\EGov\\TIL_Spring\\spring02\\src\\main\\webapp\\WEB-INF\\views\\images\\"; 
+				//업로드할 디렉토리 : views의 images의 배포 디렉토리로 설정.
+				String path = "E:\\workshop\\EGov\\TIL_Spring\\.metadata\\.plugins\\org.eclipse.wst.server.core"
+						+ "\\tmp0\\wtpwebapps\\spring02\\src\\main\\webapp\\WEB-INF\\views\\images\\"; 
 				// 위에서 지정한 디렉토리가 없으면 생성
 				new File(path).mkdir();
 				// 임시 디렉토리에 저장되어 있는 파일을 원하는 디렉토리로 옮김.
@@ -71,8 +74,8 @@ public class ProductController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			dto.setPicture_url(filename);
 		}
+		dto.setPicture_url(filename);
 		productService.insertProduct(dto);
 		return "redirect:/shop/product/list.do";
 	}
