@@ -3,7 +3,7 @@ lec09 57:00
 5. 관리자 기능
  1) 상품등록, 수정, 삭제 실습예제
 	1> 관리자 테이블 : 관리자 계정과 일반유저 테이블을 따로 관리.
->> 		- 일반사용자와 관리자가 같은 테이블에 있는경우, 보안상 문제가 있을 수 있음. (**보안강화, 계정관리 방법?)		
+ 		- 일반사용자와 관리자가 같은 테이블에 있는경우, 보안상 문제가 있을 수 있음. (**보안강화, 계정관리 방법?)		
  		Oracle ==================================================================================================
  		 drop table admin cascade constrains;
  		 create table admin (
@@ -142,7 +142,7 @@ lec09 57:00
 		 - mysql, maria db : 명령어, 함수 동일. 시퀀스 없음. auto_increment사용.
 		========================================================================================================
 
-		- 상품선택을 하지 않고 상품 업로드 시 에러 발생 (500)
+		- 이미지선택을 하지 않고 상품등록 시 에러 발생 (500)
 		** =====================================================================================================
 		 - MyBatis 디버깅
 			 > 부적합한 열 유형 : 1111 --> 뭔가가 null
@@ -153,12 +153,142 @@ lec09 57:00
 		========================================================================================================
 			> 2의 방법으로, controller의 dto.setPicture를 조건문 밖에 작성하여 어떤경우에든 값이 비어있지 않도록 한다.
 		
+		- 상품등록 시 이미지 적용 지연현상
 		** =====================================================================================================
 		 - 개발 디렉토리와 배포 디렉토리
 		 	> 상품이미지를 업로드 하면 페이지에 바로 적용되지 않는 현상 발생
 		 	> 서비스의 개발 디렉토리에 이미지가 업로드되고, 컴파일을 거쳐 배포 디렉토리에 업로드.(조금의 시간 필요.)
 		 	> 업로드 시 이미지를 배포 디렉토리에 바로 업로드하면 지연없이 바로 적용된다.
 				- controller의 디렉토리 지정위치를 배포 디렉토리로 변경.
+				 --> 배포 디렉토리는 tomcat work directoy이므로 clean 시 삭제됨.
+		========================================================================================================
+
+	5> 상품 수정기능
+		- product_list.jsp수정
+			> 관리자만 볼수 있도록 상품목록의 각 항목에 편집버튼 생성
+			> session의 변수를 확인하여 링크가 활성화 되도록 지정
+			> RESTful한 uri형식으로 요청을 보내도록 작성
+				=============================================================================================== 	
+				 - REpresentative State Transfer
+				 - REST : 리소스(상품)에 따라 고유한 주소를 가짐
+				 	> http://localhost/spring02/shop/product/edit/32
+				 - 일반적인 방식 : 주소는 동일하지만 parameter가 바뀜.
+				 	> http://localhost/spring02/shop/product/edit?product_id=32
+				=============================================================================================== 	
+		
+		- productController edit()작성
+			==================================================================================================
+			@RequestMapping("edit/{product_id}")
+			
+			public ModelAndView edit(@PathVariable("product_id") int product_id, ModelAndView mav) {
+				mav.setViewName("/shop/product_edit");
+				mav.addObject("dto", productService.detailProduct(product_id));
+				return mav;
+			}
+			=================================================================================================
+			> /edit/32 --> 상품코드(32)가 PathVariable에 저장됨. {}로 변수로 설정.
+			> @PathVariable("product_id") : {}안의 변수이름과 동일하게 ("")안을 설정. 매개변수 이름과 동일하다면 ()생략가능
+			> @PathVariable("product_id")과 유사한 방식의 컨트롤러 이름지정 : @Controller(value="myController")
+			 ===================================================================================================
+			  ** 컨트롤러단
+				@Controller
+				public class ProductController {
+				}
+				
+				- server startup --> 어노테이션을 찾아 메모리에 로드
+				- 원래는 xml로 처리 :<bean:bean id="" class="com.example.spring02.controller.shop.ProductController" />
+					> id를 정해야 하지만, 정하지 않은경우, 클래스의 이름을 가져와 첫문자를 소문자로 처리하여 사용.
+						--> ProductController => id="productController"
+					> 클래스 이름이 같고 패키지의 이름이 다른경우 id가 겹쳐져서 오류발생.
+						--> @Controller(value="myController")와 같이 value값을 입력하여 id에 value값이 들어가도록 설정필요.
+			 =======================================================================================================		
+		
+		- Service, dao, mapper detailProduct()설정.
+		
+		** 404에러의 종류 =======================================================================================
+			1. 컨트롤러 매핑이 틀린경우 --> controller의 requestMapping확인
+			2. 서버를 시작하다가 에러가 난 경우 = 서버시작이 되지 않음 --> sts의 콘솔참조
+			3. 컨트롤러 => 뷰 로 넘어가다가 못 찾은 경우 --> 페이지 없음
+		=========================================================================================================
+		
+		- product_edit.jsp (수정페이지)작성
+			> 상품등록폼의 형식에 서버에서 db에 저장된 값을 받아 채워넣어져 로드되는 페이지
+			> 입력되어 있는 값을 변경하여 업데이트를 수행한다.
+			> * 태그에 값 출력
+				- <input ... value = "값">
+				- <textarea ...>값</textarea>
+			> 상품수정/삭제를 위해 상품코드값을 받아 넘겨주어야 함.(primary key가 있어야 수정가능)
+			
+		- Controller update()작성 : insert와 유사
+			> 상품수정
+				- 첨부파일이 존재 : 새로 안올리는 경우 / 새로 올리는 경우
+				- 첨부파일이 없었음 : 새로 안올리는 경우 / 새로 올리는 경우
+		- service, dao, mapper 작성
+		
+	6> 상품 삭제기능
+		- product_edit.jsp에서 버튼 작성
+			--------------------------------------------------------------------------------------------------
+			function product_delete() {
+				if(confirm("삭제하시겠습니까?")) {
+					document.form1.action="${path}/shop/product/delete.do";
+					document.form1.submit();
+				}
+			}
+			--------------------------------------------------------------------------------------------------
+			
+		- Controller delete()작성
+			> 첨부파일을 디렉토리에서 삭제 --> 레코드 삭제
+			> 파일 경로 주의.
+			--------------------------------------------------------------------------------------------------
+			@RequestMapping("delete.do")
+			// @RequestParam 생략
+			//public String delete(@RequestParam int product_id) {
+			public String delete(int product_id) {
+				// 첨부파일 삭제
+				String filename = productService.fileInfo(product_id);
+				// null값을 방지(null point exception방지), file이 등록되지 않았을 경우 -으로 등록된것을 확인
+				if(filename != null && !filename.equals("-")) {
+					//상품이미지 디렉토리 : views의 images의 개발 디렉토리로 설정.
+					//String path = "E:\\workshop\\EGov\\TIL_Spring\\spring02\\src\\main\\webapp\\WEB-INF\\views\\images\\"; 
+					//상품이미지 디렉토리 : views의 images의 배포 디렉토리로 설정.
+					String path = "E:\\workshop\\EGov\\TIL_Spring\\.metadata\\.plugins\\org.eclipse.wst.server.core\\"
+							+ "tmp0\\wtpwebapps\\spring02\\WEB-INF\\views\\images\\"; 
+					// 파일 참조
+					File f =  new File(path+filename);
+					if(f.exists()) { // 파일이 존재하면
+						f.delete(); // 파일삭제
+					}
+				}
+				// 레코드 삭제
+				productService.deleteProduct(product_id);
+				// 화면이동
+				return "redirect:/shop/product/list.do";
+			}
+			--------------------------------------------------------------------------------------------------
+
+		- Service, Dao, mapper fileInfo()작성
+			> db에 접근하여 filename을 가져옴.
+		
+		- Service, Dao, mapper deleteProduct()작성.
+		
+		
+		** ===================================================================================================
+		MyBatis 메소드
+		 selectOne() : 레코드 1개 --> 리턴타입 dto.
+		 selectList() : 레코드 2개 이상 --> 리턴타입 ArrayList
+		======================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -37,7 +37,7 @@
 	<!-- 파일 업로드에 필요한 bean -->
   	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
   		<!-- 파일업로드 최대 용량 (byte단위) -->
-  		<beans:property name="maxUploadSize" value="10485760" />
+  		<beans:property name="maxUploadSize" value="104857600" />
   	</beans:bean>
   	
   	<!-- 파일 업로드를 위한 디렉토리 설정 -->

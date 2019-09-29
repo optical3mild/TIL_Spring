@@ -27,14 +27,12 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public void updateProduct(ProductDTO dto) {
-		// TODO Auto-generated method stub
-
+		productDao.updateProduct(dto);
 	}
 
 	@Override
 	public void deleteProduct(int product_id) {
-		// TODO Auto-generated method stub
-
+		productDao.deleteProduct(product_id);
 	}
 
 	@Override
@@ -42,10 +40,10 @@ public class ProductServiceImpl implements ProductService {
 		productDao.insertProduct(dto);
 	}
 
+	// 첨부파일의 이름 리턴
 	@Override
 	public String fileInfo(int product_id) {
-		// TODO Auto-generated method stub
-		return null;
+		return productDao.fileInfo(product_id);
 	}
 
 }

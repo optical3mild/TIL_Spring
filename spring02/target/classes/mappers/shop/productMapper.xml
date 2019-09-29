@@ -20,6 +20,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			#{product_name},#{price},#{description},#{picture_url}
 		);
 	</insert>
+	
+	<update id="update_product">
+		update product 
+			set product_name = #{product_name}, price = #{price}, description = #{description}, picture_url = #{picture_url}
+			where product_id = #{product_id}
+	</update>
+	
+	<select id="fileInfo" resultType="String">
+		select picture_url from product where product_id = #{product_id}
+	</select>
+	
+	<delete id="delete_product">
+		delete from product where product_id = #{product_id}
+	</delete>
 </mapper>
 
 

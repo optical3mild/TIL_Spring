@@ -29,6 +29,13 @@
 			</td>
 			<td>
 				<a href="${path }/shop/product/detail/${row.product_id }">${row.product_name }</a>
+				<!-- 관리자에게만 편집버튼 표시 -->
+				<c:if test="${sessionScope.admin_userid != null }">
+					<br>
+					<a href="${path }/shop/product/edit/${row.product_id}">
+						[편집]
+					</a>
+				</c:if>
 			</td>
 			<td>
 				<!-- formatNumber value="값" pattern="출력형식" -->
