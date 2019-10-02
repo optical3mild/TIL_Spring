@@ -7,6 +7,7 @@
 		<td>
 			<a href="${path }/shop/product/list.do">상품목록</a>	|
 			<a href="${path }/shop/product/write.do">상품등록</a>	|
+			<a href="${path }/pdf/list.do">PDF</a>	|	
 		</td>
 		<td class="login">
 			<c:choose>

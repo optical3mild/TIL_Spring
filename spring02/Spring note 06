@@ -7,8 +7,8 @@ lec 11 ~
   - API : http://devleopers.itextpdf.com/examples-itext5
   - 한글 처리를 위해서는 폰트 정보가 필요함.
   
- 2) 실습예제
-  1> pom.xml에 라이브러리 추가
+ 2) 실습예제 : spring02에 생성
+  1> pom.xml에 라이브러리 추가 : 추가 이후 ctrl+shift+f
   	-----------------------------------------------------------------------------------------------------------
 		<!-- pdf생성관련 라이브러리 -->
 		<!-- https://mvnrepository.com/artifact/com.itextpdf/itextpdf -->
@@ -36,6 +36,7 @@ lec 11 ~
 		    <artifactId>xmlworker</artifactId>
 		    <version>5.5.13</version>
 		</dependency>
+		<!-- 한글처리를 위한 라이브러리 -->
 		<!-- https://mvnrepository.com/artifact/com.itextpdf/itext-asian -->
 		<dependency>
 		    <groupId>com.itextpdf</groupId>
@@ -44,8 +45,12 @@ lec 11 ~
 		</dependency>
   	-----------------------------------------------------------------------------------------------------------
   	
-  	
-  	
+  2> views/include/admin_menu.jsp : pdf메뉴 추가.
+  
+  3> Controller, Service, Model, mapper작성
+  	- controller.pdf.PdfController.java
+  	- service.pdf.PdfService.java, PdfServiceImpl.java
+	- model.pdf.PdfDTO.java, PdfDAO.java, PdfDAOImpl.java  	
   	
   	
   	
