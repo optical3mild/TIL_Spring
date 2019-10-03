@@ -32,4 +32,9 @@ public class GoogleChartController {
 	public ModelAndView chart1() {
 		return new ModelAndView("chart/chart01");
 	}
+	
+	@RequestMapping("chart2.do")
+	public ModelAndView chart2() {
+		return new ModelAndView("chart/chart02");
+	}
 }

@@ -27,6 +27,7 @@
 	<dependencies>
 	<!-- 구글차트 생성관련 라이브러리 -->
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+		<!-- json-simple : JSONObject( 자바코드를 이용하여 json객체를 생성해주는 객체.)를 사용하기 위한 라이브러리 -->
 		<dependency>
 		    <groupId>com.googlecode.json-simple</groupId>
 		    <artifactId>json-simple</artifactId>
