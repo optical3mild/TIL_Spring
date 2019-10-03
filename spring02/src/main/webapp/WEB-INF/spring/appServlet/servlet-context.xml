@@ -19,6 +19,7 @@
 	<!-- mapping="리소스의 가상 url" location="리소스의 실제경로" -->
 	<resources mapping="/include/**" location="/WEB-INF/views/include/" />
 	<resources mapping="/images/**" location="/WEB-INF/views/images/" />
+	<resources mapping="/json/**" location="/WEB-INF/views/json/" />
 
 	<!-- Resolves views selected for rendering by @Controllers to .jsp resources 
 		in the /WEB-INF/views directory -->
