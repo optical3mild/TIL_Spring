@@ -15,10 +15,10 @@ public class CartServiceImpl implements CartService {
 	@Inject
 	CartDAO cartDao;
 	
+	// 상품별 장바구니 금액 통계
 	@Override
 	public List<CartDTO> cartMoney() {
-		// TODO Auto-generated method stub
-		return null;
+		return cartDao.cartMoney();
 	}
 
 	@Override

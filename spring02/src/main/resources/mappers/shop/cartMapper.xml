@@ -33,6 +33,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<update id="modifyCart">
 		update cart set amount=#{amount} where cart_id=#{cart_id}
 	</update>
+	
+	<!-- 상품별 장바구니 금액 통계 -->
+	<select id = "cart_money" resultType = "com.example.spring02.model.shop.dto.CartDTO">
+		select product_name, sum(price*amount) money
+			from cart c, product p
+			where c.product_id = p.product_id
+			group by product_name
+			order by product_name
+	</select>
 </mapper>
 
 

@@ -26,7 +26,7 @@
 	function drawChart(){
 		// 차트 그리기에 필요한 json데이터 로딩
 		var jsonData = $.ajax({
-			url : "${path}/json/sampleData.json",
+			url : "${path}/chart/cart_money_list.do",
 			dataType : "json",
 			async : false	// 동기식
 		}).responseText;

@@ -251,7 +251,10 @@ lec 11 ~
 			var jsonData = $.ajax({
 				url : "${path}/json/sampleData.json",
 				dataType : "json",
-				async : false
+				async : false,
+				// success : function(result){
+				
+				// }
 			}).responseText;
 		}
 	</script>
@@ -340,6 +343,9 @@ lec 11 ~
 					url : "${path}/json/sampleData.json",
 					dataType : "json",
 					async : false	// 동기식
+					// success : function(result){
+					// 	jsonData = result;
+					// }
 				}).responseText;
 				console.log(jsonData);
 				
@@ -370,14 +376,107 @@ lec 11 ~
   		> async : false => 동기식으로 설정.
   			- 동기식 : a작업이 끝나면 b작업을 진행 = a->b 순차적으로 진행
   			- 비동기식 : a와 b 작업을 동시진행 --> b작업에 a작업의 리턴값이 필요한 경우, 동시에 끝나지 않아 오류발생.
-  		> .responseText : 서버의 응답을 텍스트 문자열로 반환할 것이다.
+  		> .responseText
+  			- 서버의 응답을 텍스트 문자열로 반환할 것이다. 
+  			- ' success : function(result){jsonData = result;} '의 의미.
   	
    4> chart2.do : db의 자료를 json으로 변환, 화면에 차트로 출력
    	 - chart2() --> jsp페이지로 이동 --> ajax로 data를 받아 화면에 그림 
-   	 - Controller : chart2() 작성.
-   	 - chart02.jsp작성 : ajax부분 수정
+   	 - Controller : chart2(), cart_money_list() 작성.
+   	 	> chart2() : chart2.jsp로 화면이동
+   	 	> cart_money_list() : view(jsp)로 넘어가지 않고 호출한 곳에 JSONObject를 리턴함.
+   	 
+   	 - chart02.jsp작성 : ajax의 요청경로 수정
+  	 
   	 - service.chart.GoogleChartService.java, GoogleChartServiceImpl.java작성
   	 	> JSONObject : json-simple 라이브러리가 있어야 사용가능. 자바코드를 이용하여 json객체를 생성해주는 객체.
+  		> googlechart에 정의된 형식에 맞게 json객체를 구성 : JSONObject, JSONArray를 혼합하여 구성한다
+  		> cartService를 호출하여 cartMoney()실행, 데이터를 받아 json객체 작성
+  		=========================================================================================================
+			@Service
+			public class GoogleChartServiceImpl implements GoogleChartService {
+				
+				// DI : 장바구니 서비스 주입
+				@Inject
+				CartService cartService;
+				
+				// ArrayList --> json객체로 변경
+				// {"변수명" : [{},{},{}], "변수명":"값"}의 형태로 만들기 위해 객체를 생성/삽입
+				@Override
+				public JSONObject getChartData() {
+					List<CartDTO> items = cartService.cartMoney();
+					
+					//리턴할 최종 json객체 : {}
+					JSONObject data = new JSONObject(); // {}
+					
+					// 컬럼을 정의할 json 객체 : {}
+					JSONObject col1 = new JSONObject(); // {}
+					JSONObject col2 = new JSONObject(); // {}
+					
+					// json의 배열객체 : []
+					JSONArray title = new JSONArray();
+					
+					col1.put("label", "상품명"); // {"":""}
+					col1.put("type", "string"); // {"":"", "":""}
+					col2.put("label", "금액"); // {"":""}
+					col2.put("type", "number"); // {"":"", "":""} 
+					
+					// 타이틀행에 컬럼추가 : json배열에 json객체 추가
+					title.add(col1);	// [{"":"", "":""} ]
+					title.add(col2);	// [{"":"", "":""}, {"":"", "":""}]
+					
+					// json객체에 타이틀행(table의 header) 추가
+					data.put("cols", title);
+					// 			--> {"cols":[{"label":"상품명","type":"string"}, {"label":"금액","type":"number"}]}
+					
+					// rows : table의 각 행
+					JSONArray body = new JSONArray();
+					
+					for(CartDTO dto : items) {
+						//상품명
+						JSONObject name = new JSONObject();
+						name.put("v",dto.getProduct_name());
+						//금액
+						JSONObject money = new JSONObject();
+						money.put("v",dto.getMoney());
+						
+						JSONArray row = new JSONArray();
+						row.add(name);
+						row.add(money);
+						
+						JSONObject cell = new JSONObject();
+						cell.put("c", row);
+						
+						//레코드 1개 추가
+						body.add(cell);
+					}
+					data.put("rows", body);
+					
+					return data;
+				}
+			}  		
+  		=========================================================================================================
+  		 
+  	- model 작성 : 상품별 장바구니 금액 통계를 위한 DAO, mapper작성
+	  	> cartMapper.xml에 mapping추가
+	  		-----------------------------------------------------------------------------------------------------
+				<select id = "cart_money" resultType = "com.example.spring02.model.shop.dto.CartDTO">
+					select product_name, sum(price*amount) money
+						from cart c, product p
+						where c.product_id = p.product_id
+						group by product_name
+						order by product_name
+				</select>  	
+	  	 	-----------------------------------------------------------------------------------------------------
+	 	> cartDAOImpl, cartServiceImpl의 cartMoney() 작성
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
   	
   	
   	
