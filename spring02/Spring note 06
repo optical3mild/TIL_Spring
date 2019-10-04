@@ -280,10 +280,10 @@ lec 11 ~
 	  	}
   		----------------------------------------------------------------------------------------------------
   
-  3) 구글차트 실습예제
+ 3) 구글차트 실습예제 : DB에서 리스트를 받아 json객체를 생성 --> 화면의 js가 차트를 그림
    1> views/include/admin_menu.jsp에 메뉴추가
-   	 - Google Chart
-   	 	> <a href = "${path}/chart/chart1.do">구글차트(json)</a>
+   	- Google Chart
+  	 	> <a href = "${path}/chart/chart1.do">구글차트(json)</a>
    	 	> <a href = "${path}/chart/chart2.do">구글차트(db)</a>
    	 - JFreeChart : png, pdf로 차트를 생성할 수 있다.
    	 	> <a href = "${path}/jchart/chart1.do">JFreeChart(png)</a>
@@ -470,7 +470,45 @@ lec 11 ~
 	  	 	-----------------------------------------------------------------------------------------------------
 	 	> cartDAOImpl, cartServiceImpl의 cartMoney() 작성
   	
-  	
+ 4) JFreeChart
+   - http://www.jfree.org/jfreechart/
+   - 다양한 형태의 차트 지원
+   - swing, jsp, servlet에서 많이 사용되고 있음.
+   - pdf, png, jpg등의 다양한 이미지 파일 형식으로 export가능.
+   - 오픈소스 라이브러리
+   
+   1> pom.xml : jfreechart 라이브러리 추가 (여기서는 다른 라이브러리와의 호환성을 위해 1.0.18로 작업)
+   
+   2> JFreeChart실습예제
+   	- 구글차트 : DB에서 리스트를 받아 json객체를 생성 --> 화면의 js가 차트를 그림
+   	- JFreeChart 
+   		> 전체 java코드로 작성. JSON을 생성하지 않고 차트 객체를 만들어 화면에 전송.
+   		> DB의 table --> 리스트를 받아옴 --> 데이터셋(차트 객체) --> 화면에 차트 그리기
+   	1) JFreeChart png출력 예제
+   		- controller.chart.JFreeChartController.java 작성
+   		- service.chart.JFreeChartService.java, JFreeChartServiceImpl.java 작성
+   			> GoogleChart와 같이 장바구니 서비스/DAO를 호출하여 사용.
+   			> 전체 java코드로 작성 : DB의 table --> 리스트를 받아옴 --> 데이터셋(차트 객체) --> 화면에 차트 그리기
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
   	
   	
   	
