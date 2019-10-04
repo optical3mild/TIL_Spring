@@ -1,0 +1,288 @@
+lec 12 39:25 ~
+
+8. AOP
+
+ 1) AOP의 개요
+	1> AOP ( Aspect Oriented Programming, 관점(관심) 지향적인 프로그래밍)
+		- OOP(Object Oriented Programming, 객체지향 프로그래밍)을 보완하는 확장적인 개념
+		- Aspect(측면, 관점, 관심) : 핵심적인 비즈니스 로직은 아니지만 반드시 해야하는 작업들 (로그인/로그아웃..)
+			> 대중교통으로 출퇴근 시 버스카드를 사용 - 정시에 도착하는 것이 중요, 카드사용행위가 메인은 아님.
+		- 관심의 분리(Separation of Concerns)를 통해 
+			핵심관점(= 종단관심 : 업무로직) + 횡단관점(트랜잭션, 로그인, 인증처리 등)으로 분리
+			> 횡단관심을 모든 메소드에 작성하지 않고 한곳에 모아 작성하여 처리( 스프링에서 지원 )
+		- 장점 : 중복되는 코드 제거, 효율적인 유지 보수, 높은 생산성, 재활용성 극대화, 변화수용의 용이성
+		
+		** =======================================================================================================
+		절차 지향적인 프로그래밍 - C언어, 함수중심
+			C : 함수, 구조체(다양한 타입의 변수들)
+		객체 지향적인 프로그래밍
+			C++ : 클래스(변수+함수)
+			Java
+		==========================================================================================================
+
+ 2) AOP의 주요 용어
+ 	- Aspect : 공통 관심사 (로깅, 보안, 트랜잭션 등) - 횡단관점의 업무
+ 	- Join Points : method를 호출하는 시점, 예외가 발생하는 시점 등과 같이 특정작업이 실행되는 시점을 의미함
+ 		> before, after, around(before + after)
+ 	- Advice : Join Points에서 실행되어야 하는 코드(실제로 AOP기능을 구현한 객체)
+ 	- Pointcuts : 실제로 Advice를 적용시킬 대상 method
+ 	- Proxy : Advice가 적용되었을 때 만들어지는 객체
+ 	
+ 3) Advice의 종류
+ 	- Before : target method 호출 전에 적용
+ 	- After : target method 호출 후에 적용
+ 	- Around : target method 호출 이전과 이후 모두 적용(가장 광범위하게 사용됨)
+
+ 4) AOP의 설정 방법
+  1> pom.xml에 라이브러리 추가
+  	- <properties>에 aspectj버전 태그 추가 : <org.aspectj-version>1.9.2</org.aspectj-version>
+  	- 라이브러리 추가 : aspectjweaver 추가
+		====================================================================================================
+		<dependency>
+		    <groupId>org.aspectj</groupId>
+		    <artifactId>aspectjweaver</artifactId>
+		    <!-- <version>1.9.2</version> -->
+			<!-- version값을 properties에서 가져옴-->
+			<version>${org.aspectj-version}</version>
+		</dependency>
+		====================================================================================================
+
+  2> servlet-context.xml의 namespace에 aop와 tx(트랜잭션)추가
+  	- 파일을 열고 source탭 옆의 namespace탭을 열어 aop와 tx부분을 추가
+	- namespace탭에 설정한 내용은 source의 최상위 <beans:beans> 의 속성으로 각각 xmlns:aop, xmlns:tx 이다.
+	- namespace에 지정: 관련 태그를 이용할 수 있음
+
+  3> servlet-context.xml에 aop 태그 추가
+  	--------------------------------------------------------------------------------------------------------
+  	<!-- aop의 설정으로 proxy객체를 자동으로 생성 -->
+  	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+  	--------------------------------------------------------------------------------------------------------
+	- aop관련 코드를 읽어 자동으로 객체(인스턴스)로 만들어 주는 역할을 하는 태그
+	- namespace에 속성지정이 되어있지 않으면 태그로 인한 에러발생.
+
+  4> AOP기능을 지원하는 Advice 클래스 작성 - Logger
+  	- 공통업무 : aop를 적용하여 메소드에서 일일이 하지 않고 공통적인 부분들은 한번에 처리 (세션체크, 로깅작업)
+	- com.example.spring02.aop.LogAdvice.java : 로깅작업을 aop를 이용하여 적용
+	  ====================================================================================================
+		*어노테이션
+		- @Controller, @Service, @Repository : controller, service, model(dao) bean
+		- @Component : 범용적인 bean (@Repository대신에 사용가능)
+		
+		- @Aspect : 공통적인 업무를 지원하는 bean
+		
+		// 스프링에서 관리하는 bean으로 등록
+		@Component
+		// 공통적인 업무를 지원하는 bean
+		@Aspect
+		public class LogAdvice {
+			
+			// 로깅을 위한 변수
+			private static final Logger logger = LoggerFactory.getLogger(LogAdvice.class);
+			
+			// 메서드가 실행되는 시점과 범위 정의
+			@Around(
+					"execution(* com.example.spring02.controller..*Controller.*(..))"
+				+ " or execution(* com.example.spring02.service..*Impl.*(..))"
+				+ " or execution(* com.example.spring02.model..dao.*Impl.*(..))"
+			)
+			public Object logPrint(ProceedingJoinPoint joinPoint) throws Throwable {
+			// 핵심업무가 호출되기 전 실행 : before
+				long start = System.currentTimeMillis(); // 시작시간측정
+				
+			// 핵심업무 실행
+			// proceed()가 호출되는 시점을 기준으로 before after가 결정 : proceed()가 호출되면 핵심업무를 실행
+				Object result = joinPoint.proceed();
+				
+			// 핵심업무가 종료되면 이하를 실행 : after
+				String type = joinPoint.getSignature().getDeclaringTypeName(); // 호출한 클래스 이름
+				String name = "";
+				if(type.indexOf("Controller") > -1) {
+					name = "Controller \t: ";
+				} else if(type.indexOf("Service") > -1) {
+					name = "ServiceImpl \t: ";
+				} else if(type.indexOf("DAO") > -1) {
+					name = "DaoImpl \t: ";
+				}
+				// 로그에 남김 : 호출한 클래스, method정보
+				logger.info(name+type+"."+joinPoint.getSignature().getName()+"()");
+				// method에 저장되는 매개변수
+				logger.info(Arrays.toString(joinPoint.getArgs()));
+				// 종료시간측정
+				long end = System.currentTimeMillis();
+				long time = end - start;
+				logger.info("실행시간: "+time);
+				return result;
+			}
+		}
+	  ====================================================================================================
+		> @Around("execution(범위지정-패키지/클래스/메소드)")
+			- 메서드가 실행되는 시점과 범위 정의
+				> .. : 모든 하위패키지
+				> *Controller : Controller로 끝나는 모든 클래스
+				> *(..) : 모든 메소드
+				> 범위지정에 따라 선택된 메소드에 @Aspect 메소드 행번호에 표시된 화살표와 동일한 모양의 화살표가 표시됨
+		> Object result = joinPoint.proceed(); : 핵심업무 실행
+			- logPrint() 실행 (before) --> 핵심업무(메소드)실행(proceed()) --> logPrint() 실행 (after)
+			- proceed()가 호출되는 시점을 기준으로 before/after가 결정, 전체 코드가 순차적으로 실행된다.
+		
+		
+ 5) AOP, 트랜잭션처리 예제
+  1> AOP실습용 테이블
+   ==== Oracle ==============================================================================================
+	drop table tbl_user cascade constrains;
+	
+	create table tbl_user (
+		userid varcher2(50) not null,
+		upw varchar2(50) not null,
+		uname varchar2(50) not null,
+		upoint number default 0,
+		primary key(userid)
+	);
+	
+	create table tbl_message (
+		mid number not null,
+		targetid varchar2(50) not null,
+		sender varchar2(50) not null,
+		message varchar2(4000) not null,
+		opendate date,
+		senddate date default sysdate,
+		primary key(mid)
+	);
+	
+	-- 시퀀스 생성
+	create sequence message_seq
+	start with 1
+	increment by 1;
+	
+	-- 제약조건 설정
+	alter table tbl_message add constraint fk_usertarget foreign key (targetid) references tbl_user(userid);
+	alter table tbl_message add constraint fk_usersender foreign key (sender) references tbl_user(userid);
+	
+	-- 사용자 추가
+	insert into tbl_user (userid, upw, uname) values ('user00', 'user00', 'kim');
+	insert into tbl_user (userid, upw, uname) values ('user01', 'user01', 'park');
+	insert into tbl_user (userid, upw, uname) values ('user02', 'user02', 'hong');
+	insert into tbl_user (userid, upw, uname) values ('user03', 'user03', 'choi');
+	insert into tbl_user (userid, upw, uname) values ('user04', 'user04', 'lee');
+	
+	select * from tbl_user;
+	
+	-- user02가 user00에게 메시지를 전송
+	insert into tbl_message(mid, targetid, sender, message) values (message_seq.nextval, 'user00', 'user02', '안녕');
+	
+	-- user02에게 포인트 10 추가
+	update tbl_user set upoint=upoint+10 where userid='user02';
+	
+	-- user00의 메시지 박스 조회
+	select * from tbl_message where targetid = 'user00';
+	-- 메시지를 읽은 시각 수정
+	update tbl_message set opendate = sysdate where mid = 1;
+	select * from tbl_message;
+	-- 메시지를 읽으면 5 포인트 증가
+	update tbl_user set upoint=upoint+5 where userid = 'user00';
+	select * from tbl_user;
+	
+	-- 메시지 테이블 초기화
+	delete from tbl_message;
+	-- 사용자 포인트 초기화
+	update tbl_user set upoint = 0;
+	
+	commit;
+   ==========================================================================================================
+  
+   ==== MySQL ==============================================================================================
+	drop table tbl_user;
+	
+	create table tbl_user (
+		userid varchar(50) not null primary key,
+		upw varchar(50) not null,
+		uname varchar(50) not null,
+		upoint int default 0
+	);
+	
+	* date --> datetime, sysdate --> now()
+	create table tbl_message (
+		mid int not null primary key auto_increment,
+		targetid varchar(50) not null,
+		sender varchar(50) not null,
+		message varchar(4000) not null,
+		opendate datetime,
+		senddate datetime default now()
+	);
+	
+	-- 시퀀스 생성 --> auto_increment 옵션
+	
+	-- 제약조건 설정 : 동일
+	alter table tbl_message add constraint fk_usertarget foreign key (targetid) references tbl_user(userid);
+	alter table tbl_message add constraint fk_usersender foreign key (sender) references tbl_user(userid);
+	
+	-- 사용자 추가 : 동일
+	insert into tbl_user (userid, upw, uname) values ('user00', 'user00', 'kim');
+	insert into tbl_user (userid, upw, uname) values ('user01', 'user01', 'park');
+	insert into tbl_user (userid, upw, uname) values ('user02', 'user02', 'hong');
+	insert into tbl_user (userid, upw, uname) values ('user03', 'user03', 'choi');
+	insert into tbl_user (userid, upw, uname) values ('user04', 'user04', 'lee');
+	
+	select * from tbl_user;
+	
+	-- user02가 user00에게 메시지를 전송 
+		: message_seq.nextval 사용불가 -> 서브쿼리 이용 - " select ifnull(max(product_id)+1,1) from product a "
+	insert into tbl_message(mid, targetid, sender, message) 
+			values ((select ifnull(max(mid)+1,1) from tbl_message a), 'user00', 'user02', '안녕');
+	
+	-- user02에게 포인트 10 추가
+	update tbl_user set upoint=upoint+10 where userid='user02';
+	
+	-- user00의 메시지 박스 조회
+	select * from tbl_message where targetid = 'user00';
+	-- 메시지를 읽은 시각 수정
+	update tbl_message set opendate = now() where mid = 1;
+	select * from tbl_message;
+	-- 메시지를 읽으면 5 포인트 증가
+	update tbl_user set upoint=upoint+5 where userid = 'user00';
+	select * from tbl_user;
+	
+	-- 메시지 테이블 초기화
+	delete from tbl_message;
+	-- 사용자 포인트 초기화
+	update tbl_user set upoint = 0;
+   ==========================================================================================================
+	> 트랜잭션 : 전체 작업이 완료되어야 작업완료되어 결과가 저장(반영)됨. 
+		- 글쓰기 + 포인트10 부여	/	글읽기 + 열람시간 수정 + 포인트5 부여  --> 도중 실패 시 롤백
+
+  2> 기본 코드 작성
+  	- com.example.spring02.model.message.dto : MessageDTO.java, UserDTO.java
+  	- com.example.spring02.model.message.dao : MessageDAO.java, MessageDAOImpl.java - 메지시 읽기/쓰기/상태변경
+  	- mappers.message : messageMapper.xml
+  
+  3> 메시지 보내기
+  	- DAO create() : sqlSession호출, insert()실행
+  		> * @Inject 두개이상 필요한 경우 - 각 변수선언마다 어노테이션 작성
+	- mapper : <insert id="create"> - 메시지 전송 쿼리  	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
