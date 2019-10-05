@@ -260,15 +260,178 @@ lec 12 39:25 ~
   		> * @Inject 두개이상 필요한 경우 - 각 변수선언마다 어노테이션 작성
 	- mapper : <insert id="create"> - 메시지 전송 쿼리  	
 
+>> lec13~
+  4> 포인트 기능 : 트랜잭션(거래처리 단위) 처리, Advanced REST Client 사용
+  	- 트랜잭션이 완료되지 않은 상태에서 에러가 발생할 경우, 데이터에 오류가 발생함. > 메시지 전달완료+포인트x
+  	- root-context.xml(or servlet-context.xml)의 namespace탭에 tx체크 확인.(트랜잭션 설정)
+  		> servlet-context.xml : 서블릿에 관련된 설정
+  		> root-context.xml : 서블릿 이외의 설정 - DB연동 등...
+  		> servlet-context.xml, root-context.xml을 합쳐도 상관 없음.
+  		> servlet-context.xml에 체크 되어있지만, 트랜잭션은 DB연동과 관련이 있으므로 root-context.xml에 추가 설정한다. 
+  		> root-context.xml에 트랜잭션관련 태그를 작성한다.
+  			----------------------------------------------------------------------------------------------------
+			>> 설정되어 있던 부분 : DB연동
+			<!-- Root Context: defines shared resources visible to all other web components -->
+			<bean id="dataSource"
+				class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+				<!-- 드라이버 클래스 이름이 변경됨 -->
+				<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
+				
+				<property name="url" value="jdbc:log4jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8&amp;serverTimezone=UTC" />
+				
+				<property name="username" value="spring" />
+				<property name="password" value="1234" />
+			</bean>
+			<< 설정되어 있던부분
+			
+			<!-- 트랜잭션 관련 설정 -->
+			<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+				<property name="dataSource" ref="dataSource" />
+			</bean>
+			<!-- 트랜잭션 관련 어노테이션을 자동인식하는 옵션 -->
+			<tx:annotation-driven />
+  			----------------------------------------------------------------------------------------------------
+  			- <constructor-arg> : 생성자에 입력되는 매개변수
+  			- <property> : 클래스의 멤버변수
+  			- <property name="변수명" ref="다른 bean의 id" /> 
+  				> 설정에서 ref와 bean의 id가 일치하는 태그를 찾아 변수값으로 전달
+  				> 트랜잭션 설정을 자바코드로 변환
+  					-------------------------------------------------------------------------------------------
+					class DataSourceTransactionManager {
+						@Inject
+						DriverManagerDataSource dataSource; --> 변수명이 dataSource인 클래스를 주입
+					}
+  					-------------------------------------------------------------------------------------------
+  				> DB연동부분을 자바코드로 변환
+  					-------------------------------------------------------------------------------------------
+					class DriverManagerDataSource {
+						DriverSpy driverClassName;
+						String url = "jdbc:log4jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8&amp;serverTimezone=UTC"
+						String username = "spring";
+						String password = "1234";
+					}
+  					-------------------------------------------------------------------------------------------
 
+  	- com.example.spring02.model.massage.dao : PointDAO.java, PointDAOImpl.java - updatePoint() 
+		=======================================================================================================
+			@Repository
+			public class PointDAOImpl implements PointDAO {
+			
+				@Inject
+				SqlSession sqlSession;
+				
+				@Override
+				public void updatePoint(String userid, int point) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("userid", userid);
+					map.put("point", point);
+					
+					// 2개 이상의 값을 전달할 경우 -> dto나 map을 사용
+					sqlSession.update("point.updatePoint", map);
+				}
+			}
+		=======================================================================================================
+		> Map의 key는 쿼리의 파라미터와 같은 이름으로 한다.
 
+	- pointMapper.xml
+		=======================================================================================================
+			<!-- sqlSession.update("point.updatePoint", map); -->
+			<!-- map을 매개값으로 받아 쿼리에 값이 전달됨. parameter설정이 생략가능. -->
+			<update id="updatePoint" parameterType="map">
+				update tbl_user set upoint=upoint+#{point} where userid=#{userid};
+			</update>
+		=======================================================================================================
+		> 여러개의 값을 전달받는 경우, map을 사용하여 넘어옴.
+		> parameterType으로 넘어오는 매개값을 정의할 수 있으며, map의 경우 생략가능.
+		> Map의 key는 쿼리의 파라미터와 같은 이름으로 되어있어야 한다.
 
-
-
-
-
-
-
+	- com.example.spring02.service.message : MessageService.java, MessageServiceImpl.java - 메시지 추가/ 읽기
+		> addMessage()
+		======================================================================================================
+		// Inject는 각각해야 함.
+		@Inject
+		MessageDAO messageDao;
+		@Inject
+		PointDAO pointDao;
+		
+		// 트랜잭션 처리대상 method : 하나 실패시 롤백.
+		@Transactional
+		@Override
+		public void addMessage(MessageDTO dto) {
+			// 메시지를 테이블에 저장
+			messageDao.create(dto);
+			// 메시지를 보낸 회원에게 10 포인트 추가
+			pointDao.updatePoint(dto.getSender(), 10);
+		}
+		======================================================================================================
+		> @Transactional : 트랜잭션 처리대상 method. 하나 실패시 롤백.
+		> 서비스 : 여러 DAO메소드를 호출 할 수 있음. DAO보다는 큰 업무단위.
+		
+	- com.example.spring02.controller.message : MessageController.java
+		> @RestController : 스프링 4.0부터 사용가능
+			==================================================================================================
+			* 어노테이션
+				@RequestBody : 클라이언트 --> 서버(json데이터가 입력될 때) => 해당 매개변수 앞에 위치
+				@ResponseBody : 서버 --> 클라이언트(json) => 메소드 상단에 위치
+				
+				ResponseEntity : 리턴값=json+에러메시지 // 클래스
+				
+			* 작성한 컨트롤러 코드	
+			@RestController
+			@RequestMapping("messages/*")
+			public class MessageController {
+				
+				@Inject
+				MessageService messageService;
+				
+				// ResponseEntity : 리턴값=json+에러메시지
+				// ResponseEntity<String> : String의 형태로 리턴값(json+에러메시지)가 넘어감.
+				@RequestMapping(value="/", method=RequestMethod.POST) // ~messages/ 까지 요청 시 작동.
+				public ResponseEntity<String> addMessage(@RequestBody MessageDTO dto) {
+					ResponseEntity<String> entity = null;
+					try {
+						messageService.addMessage(dto);
+						entity = new ResponseEntity<>("success", HttpStatus.OK); // 200
+					} catch (Exception e) {
+						e.printStackTrace();
+						entity = new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400
+					}
+					return entity;
+				}
+			}
+			==================================================================================================
+		
+		> Advanced REST Client 사용을 위해 설치 : 크롬 확장프로그램 Advanced REST Client
+			- 폼을 따로 만들지 않고 웹페이지에 값을 전송 할 수 있음.
+			- 입력데이터를 json으로 보내기 위해 사용.
+			========================================================================================================
+			* REST uri
+				- REST(REpresentational State Transfer) : 하나의 uri가 하나의 고유한 리소스를 대표하도록 설계된 개념
+				- 파라미터로 표시되는 uri
+					> http://localhost:8080/spring02/reply/list?bno=1
+				- REST방식의 uri
+					> http://localhost:8080/spring02/reply/list/1
+				- ResponseEntity : 컨트롤러를 호출하여 데이터와 http상태 코드를 동시에 리턴가능하게 함
+				- 컨트롤러에 json data를 전달하는 테스트를 위해 크롬에 Advanced REST Client 확장프로그램 설치
+			
+			* http응답코드
+				- 200 : ok. 요청이 성공적으로 수행되었음
+				- 400 : Bad request. 사용자의 잘못된 요청을 수행 할 수 없음. 
+					> ex) 보내는(받는)쪽의 변수가 있으나 받는(보내는)쪽에 변수가 없음
+				- 404 : Not found. 요청한 페이지 없음
+				- 500 : Internal Server Error.
+				
+			* http 메소드 종류
+				- get : 서버에 요청
+				- post : 서버에 전달
+				- head 
+					> get과 유사. 웹서버에서 헤더정보 이외에는 다른데이터를 보내지 않음. 
+					> 다운여부 점검, 웹서버 정보(버전 등)을 얻기위해 사용.
+				- options : 시스템에서 지원되는 메소드 종류를 확인
+				- put : 전체 수정
+				- delete : 삭제
+				- patch : 일부분 수정
+			========================================================================================================
 
 
 

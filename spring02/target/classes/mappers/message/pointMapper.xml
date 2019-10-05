@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
+<mapper namespace="point">
+
+	<!-- sqlSession.update("point.updatePoint", map); -->
+	<!-- map을 매개값으로 받아 쿼리에 값이 전달됨. parameter설정이 생략가능. -->
+	<update id="updatePoint" parameterType="map">
+		update tbl_user set upoint=upoint+#{point} where userid=#{userid};
+	</update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
