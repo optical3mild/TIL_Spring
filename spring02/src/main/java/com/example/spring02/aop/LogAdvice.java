@@ -25,11 +25,11 @@ public class LogAdvice {
 	// => logPrint() 실행 (before) --> 핵심업무(메소드)실행(proceed()) --> logPrint() 실행 (after)
 	// 범위지정에 따라 선택된 메소드에 아래의 메소드 행번호에 표시된 화살표와 동일한 모양의 화살표가 표시됨
 	//  : 각 코드에서 적용여부를 확인할 수 있다.
-	@Around(
-			"execution(* com.example.spring02.controller..*Controller.*(..))"
-		+ " or execution(* com.example.spring02.service..*Impl.*(..))"
-		+ " or execution(* com.example.spring02.model..dao.*Impl.*(..))"
-	)
+//	@Around(
+//			"execution(* com.example.spring02.controller..*Controller.*(..))"
+//		+ " or execution(* com.example.spring02.service..*Impl.*(..))"
+//		+ " or execution(* com.example.spring02.model..dao.*Impl.*(..))"
+//	)
 	public Object logPrint(ProceedingJoinPoint joinPoint) throws Throwable {
 	// 핵심업무가 호출되기 전 실행 : before
 		long start = System.currentTimeMillis(); // 시작시간측정

@@ -261,7 +261,7 @@ lec 12 39:25 ~
 	- mapper : <insert id="create"> - 메시지 전송 쿼리  	
 
 >> lec13~
-  4> 포인트 기능 : 트랜잭션(거래처리 단위) 처리, Advanced REST Client 사용
+  4> 포인트 기능 : 트랜잭션(거래처리 단위) 처리, Advanced REST Client 사용(view가 없는 상태에서 테스트)
   	- 트랜잭션이 완료되지 않은 상태에서 에러가 발생할 경우, 데이터에 오류가 발생함. > 메시지 전달완료+포인트x
   	- root-context.xml(or servlet-context.xml)의 namespace탭에 tx체크 확인.(트랜잭션 설정)
   		> servlet-context.xml : 서블릿에 관련된 설정
@@ -371,10 +371,10 @@ lec 12 39:25 ~
 		> @RestController : 스프링 4.0부터 사용가능
 			==================================================================================================
 			* 어노테이션
-				@RequestBody : 클라이언트 --> 서버(json데이터가 입력될 때) => 해당 매개변수 앞에 위치
-				@ResponseBody : 서버 --> 클라이언트(json) => 메소드 상단에 위치
-				
-				ResponseEntity : 리턴값=json+에러메시지 // 클래스
+				- @RequestBody : 클라이언트 --> 서버(json데이터가 입력될 때) => 해당 매개변수 앞에 위치
+				- @ResponseBody : 서버 --> 클라이언트(json) => 메소드 상단에 위치
+					> json String --> dto로 변환
+				- ResponseEntity : 리턴값=json+에러메시지 // 클래스
 				
 			* 작성한 컨트롤러 코드	
 			@RestController
@@ -433,10 +433,61 @@ lec 12 39:25 ~
 				- patch : 일부분 수정
 			========================================================================================================
 
-
-
-
-
+	- 테스트 : Advanced REST Client
+		> post, http://localhost:8080/spring02/messages/, json형식으로 데이터 전송
+			-------------------------------------------------------------------------------------------------
+			{"targetid":"user01", "sender":"user00", "message":"Good morning" }
+			-------------------------------------------------------------------------------------------------
+			- 성공 시 200 ok, DB에 업데이트.
+		
+		> 에러 발생 테스트 : 메시지저장(성공) + 포인트 올리기(에러) --> 롤백
+			- mapper query 임시수정 : 임의부분 오타 - 400에러 발생
+>>			- query의 변수( #{}안 )이름 수정 시 트랜젝션 실패.
+		
+  5> AOP테스트 
+  	- com.example.spring02.aop : MessageAdvice.java
+  		====================================================================================================
+		@Controller : 컨트롤러
+		@Service : 서비스
+		@Repository : 모델(dao)
+		@Component : 공통적인 bean 
+		
+		@After : 요청 후 처리
+		@Before : 요청 전 처리
+		@Around : 요청 전후 처리
+		
+		@Before, @After ==> JoinPoint 사용
+		@Around ==> ProceedingJoinPoint 사용
+		
+		@Component // 기타 bean
+		@Aspect	// aop bean -  공통업무를 지원하는 코드
+		public class MessageAdvice {
+			
+			private static final Logger logger = LoggerFactory.getLogger(MessageAdvice.class);
+			
+			@Before("execution(* com.example.spring02.service.message.MessageService*.*(..))")
+			public void startLog(JoinPoint jp) {
+				logger.info("핵심 업무의 코드정보: "+ jp.getSignature());
+				logger.info("method: "+ jp.getSignature().getName());
+				logger.info("매개변수: "+ Arrays.toString(jp.getArgs()));
+			}
+			
+			@Around("execution(* com.example.spring02.service.message.MessageService*.*(..))")
+			public Object timeLog(ProceedingJoinPoint pjp) throws Throwable	{
+				//호출 전
+				long start = System.currentTimeMillis();
+				
+				//대상 메소드 호출
+				Object result = pjp.proceed();
+				
+				//호출 후
+				long end = System.currentTimeMillis();
+				logger.info(pjp.getSignature().getName()+":"+(end-start));
+				logger.info("================");
+				return result;
+			}
+		}
+  		====================================================================================================
 
 
 

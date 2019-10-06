@@ -22,6 +22,7 @@ public class MessageController {
 	// ResponseEntity : 리턴값=json+에러메시지
 	@RequestMapping(value="/", method=RequestMethod.POST) // ~messages/ 까지 요청 시 작동.
 	// ResponseEntity<String> : String의 형태로 리턴값(json+에러메시지)가 넘어감.
+	// @RequestBody : json String --> dto로 변환
 	public ResponseEntity<String> addMessage(@RequestBody MessageDTO dto) {
 		ResponseEntity<String> entity = null;
 		try {
