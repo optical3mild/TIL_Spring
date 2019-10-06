@@ -30,7 +30,7 @@ public class CartController {
 		// 세션변수 확인 : 사용자 확인/로그인 여부 check를 위해 사용자 id를 session에서 확인
 		String userid = (String)session.getAttribute("userid");
 		
-		if(userid != null) { //로그인한 경우
+		//if(userid != null) { //로그인한 경우
 			// 서비스를 호출하여 목록을 받아옴.
 			List<CartDTO> list = cartService.listCart(userid);
 			// 장바구니 합계 계산
@@ -51,9 +51,9 @@ public class CartController {
 			mav.setViewName("shop/cart_list"); // view 지정
 			mav.addObject("map", map);	// view에 전달할 data
 			return mav;
-		} else { // 로그인하지 않은 경우 userid <-- null
-			return new ModelAndView("member/login", "", null);
-		}
+		//} else { // 로그인하지 않은 경우 userid <-- null
+		//	return new ModelAndView("member/login", "", null);
+		//}
 	}
 	
 	@RequestMapping("insert.do")
