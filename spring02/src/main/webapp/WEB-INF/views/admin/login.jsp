@@ -27,6 +27,12 @@
 				
 				<input type="button" id="btnLogin" value="로그인">
 				
+				<c:if test="${param.message == 'nologin' }">
+					<div style="color:red;">
+						로그인 후 이용바랍니다.
+					</div>
+				</c:if>
+
 				<c:if test="${message == 'error' }">
 					<div style="color:red;">
 						아이디 또는 비밀번호가 일치하지 않습니다.

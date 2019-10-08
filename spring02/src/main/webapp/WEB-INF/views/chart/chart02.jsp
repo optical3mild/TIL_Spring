@@ -7,6 +7,9 @@
 <title>Insert title here</title>
 <!-- spring02 project header -->
 <%@ include file="../include/header.jsp" %>
+
+<!-- interceptor로 대체 -->
+<%-- <%@ include file="../include/session_check.jsp" %>  --%>
 </head>
 <body>
 <!-- spring02 project menu -->

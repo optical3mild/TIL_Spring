@@ -58,6 +58,7 @@
 <!-- 인터셉터 빈을 등록 : class에 전체경로 작성, id는 이 bean을 참조할 변수명 --> 
 	<beans:bean id="sampleInterceptor" class="com.example.spring02.interceptor.SampleInterceptor"></beans:bean>
 	<beans:bean id="loginInterceptor" class="com.example.spring02.interceptor.LoginInterceptor"></beans:bean>
+	<beans:bean id="adminInterceptor" class="com.example.spring02.interceptor.AdminInterceptor"></beans:bean>
 
 <!-- 인터셉터 호출을 위한 url mapping -->
 	<!-- beans:ref bean="참조할 bean의 id" -->
@@ -72,6 +73,15 @@
 			<mapping path="/shop/cart/list.do" />
 			<mapping path="/shop/cart/insert.do" />
 			<beans:ref bean="loginInterceptor" />
+		</interceptor>
+		
+		<interceptor>
+			<mapping path="/shop/product/write.do" />
+			<mapping path="/shop/product/insert.do" />
+			<mapping path="/pdf/list.do" />	
+			<mapping path="/chart/**" />	
+			<mapping path="/jchart/**" />	
+			<beans:ref bean="adminInterceptor" />
 		</interceptor>
 		
 	</interceptors>
