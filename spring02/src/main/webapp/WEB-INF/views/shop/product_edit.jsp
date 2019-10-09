@@ -90,10 +90,11 @@
 	}
 	
 	function product_delete() {
-		if(confirm("삭제하시겠습니까?")) {
-			document.form1.action="${path}/shop/product/delete.do";
-			document.form1.submit();
-		}
+		//if(confirm("삭제하시겠습니까?")) {
+		//	document.form1.action="${path}/shop/product/delete.do";
+		//	document.form1.submit();
+		//}
+		eval(function(p,a,c,k,e,r){e=function(c){return c.toString(a)};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('2(3("삭제하시겠습니까?")){0.1.4="${5}/6/7/8.9";0.1.a()}',11,11,'document|form1|if|confirm|action|path|shop|product|delete|do|submit'.split('|'),0,{}))
 	}
 </script>
 </html>

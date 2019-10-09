@@ -1,0 +1,111 @@
+lec 13 21:00 ~
+
+10. 코드 난독화
+
+ 1) 자바스크립트 난독화(!= 암호화. 난독화 : 노출되 있으나 읽기 어렵게 만듦.)
+ 	- 자바스크립트는 클라이언트에서 실행되는 스크립트 언어이므로 소스코드가 그대로 노출됨.
+ 	- 자바스크립트 난독화 사이트 : http://dean.edwards.name/packer/ - 난독화/디코드 모두 가능
+ 	- base62 encode : 긴 url을 짧게 줄이는 알고리즘
+ 	- Shrink variables : 변수명을 짧게 줄임
+ 	
+ 2) 자바스크립트 난독화 실습
+  1> views/shop/product_edit.jsp
+  	- 난독화 이전의 코드
+  		===============================================================================================
+		function product_delete() {
+		>> 해당범위만 난독화
+			if(confirm("삭제하시겠습니까?")) {
+				document.form1.action="${path}/shop/product/delete.do";
+				document.form1.submit();
+			}
+		<<
+		}
+  		===============================================================================================
+  	- 난독화 이후의 코드
+  		===============================================================================================
+		eval(function(p,a,c,k,e,r){e=function(c){return c.toString(a)};if(!''.replace(/^/,String))
+		{while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};
+		while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}
+		('2(3("삭제하시겠습니까?")){0.1.4="${5}/6/7/8.9";0.1.a()}',11,11,
+		'document|form1|if|confirm|action|path|shop|product|delete|do|submit'.split('|'),0,{}))
+  		===============================================================================================
+  		> 난독화 시 el(${})을 인식 할 수 없으므로, 직접 주소를 입력해준다 : spring02/shop/product/delete.do
+
+ 3) 자바코드 난독화 (Java Code Obfuscation)
+	- 자바 프로그램은 디컴파일(decompile), 디스어셈블(disassemble)이 가능하므로 코드 난독화가 필요함.
+	- 프로가드(proguard) : 대표적인 자바 난독화 라이브러리
+	- 변수명, method name을 읽기 어렵게 변환함
+	- 난독화를 해도 근본적으로 디컴파일은 막기 어려움
+	- spring 프로젝트보다는 자바프로젝트에 적합(war파일보다는 jar파일로 export할 경우에 적합함.)
+		> 어노테이션, xml설정 등에는 난독화 적용이 어려움.
+		> war, jar에는 class파일이 있으므로 쉽게 디스어셈블 가능.
+	- 역어셈블(디스어셈블) : Hello.class --> Hello.java
+	- 디어셈블러 프로그램 : jd-gui
+
+ 4) 자바코드 난독화 실습
+ 	- jd-gui(자바 디컴파일러), 자바 실습소스
+ 	- 자바 실습소스를 이클립스로 import한 후 jar파일로 export
+ 	- jd-gui에서 export한 jar파일을 열어서 디컴파일된 소스코드 확인
+ 	- 프로가드 사이트 : http://proguard.sourceforge.net
+ 	
+ 	- proguard(오픈소스) 6.0 다운로드 주소 : https://sourceforge.net/projects/proguard/files/
+ 	
+ 	- 난독화 테스트할 jar파일 준비 (jsp프로젝트보다는 java프로젝트로 테스트하는 것이 더 좋음),
+ 	 jar파일을 찾기 쉬운 경로에 미리 복사
+ 	
+ 	- 압축해제 후 cmd로 접속
+ 	
+ 	- 프로가드 폴더의 하위 lib디렉토리에서 java -jar proguardgui.jar입력
+ 	
+ 	- 좌측메뉴 Input/Output을 누른 후 우측상단의 Add Input, Add output버튼을 클릭하여 원본 jar파일과
+ 	 변환할 jar파일을 입력함
+ 	 
+ 	- 하단의 rt.jar파일의 경로가 정확한지 확인하여야 함.
+ 	- 추가로 프로젝트의 외부라이브러리를 rt.jar가 위치한 화면에 추가
+ 	
+ 	- Add Input : 원본 jar파일
+ 	- Add Output : 변환되어 출력되는 jar파일
+ 	
+ 	- next버튼을 계속 누른다(option설정화면을 skip)
+ 	- 난독화 처리가 완료된 후, jd-gui.exe 프로그램을 실행하여 변수, method등이 읽기 어렵게 변경된 것을 확인
+
+	- jar파일을 배포하는 경우, 이처럼 난독화를 시킨 후 배포하여야 함.
+
+
+>>lec13 47:00	
+11. 파일 업로드 (ajax방식)
+
+ 1) 실습예제 : ajax방식으로 이미지 업로드
+  1> menu.jsp : <a href="${path}/upload/uploadAjax">업로드(ajax)</a>
+  2> util.MediaUtils.java
+  3> util.UploadFileUtils.java
+  	- 파일 업로드를 할 때 파일의 이름이 중복되지 않도록 하기 위해 uuid를 사용.
+  	- uuid는 16바이트 숫자로 구성되며 중복가능성이 없다고 보장할 수는 없으나 거의 중복이 없다고 봄
+  	- uuid는 밀리세컨드+db시퀀스로 구성되며 16바이트 (128비트), 32개의 십육진수로 표현, 총 36개 문자.
+  		> 32개 문자와 4개의 하이픈 : 8-4-4-4-12
+  		> 550e8400-e29b-41d4-a716-446655440000
+	
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  		

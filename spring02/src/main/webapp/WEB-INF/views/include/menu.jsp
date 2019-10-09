@@ -7,7 +7,8 @@
 		<td>
 			<a href="${path }">Home</a>	|	
 			<a href="${path }/memo/list.do">메모장</a>	|	
-			<a href="${path }/upload/uploadForm">업로드테스트</a>	|	
+			<a href="${path }/upload/uploadForm">업로드테스트</a>	|
+			<a href="${path}/upload/uploadAjax">업로드(ajax)</a>	|		
 			<a href="${path }/shop/product/list.do">상품목록</a>	|
 			<c:if test="${sessionScope.admin_userid != null }">
 				<a href="${path }/shop/product/write.do">상품등록</a>	|	
