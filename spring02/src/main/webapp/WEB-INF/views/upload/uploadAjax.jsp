@@ -50,25 +50,58 @@ $(function(){
 		var files = event.originalEvent.dataTransfer.files;
 		var file = files[0]; // 첫번째 첨부파일
 		var formData = new FormData(); // 폼객체
-		formData.append("file", file); // 폼에 file변수 추가.
+		formData.append("file", file); // 폼에 file변수 추가(폼에 파일 추가).
 		
 		//서버에 파일 업로드(백그라운드에서 실행됨)
 		//contentType: false --> multipart/form-data로 처리됨 (= form tag의 enctype속성 설정과 동일)
 		// > <form mehthod="post" enctype="multipart/form-data">
 		$.ajax({
-			type: "post",
+			type: "post", // controller에 중복된 url매핑이 있지만, 방식에 따라 컨트롤러의 메소드 선택이 가능.
 			url: "${path}/upload/uploadAjax",
-			data: formData,
-			dataType: "text",
-			processData: false,
+			data: formData, // 파일이 저장된 폼 객체를 data로
+			dataType: "text", // 웹에서 보내는 data는 항상 text --> 웹에서 넘어가는 값은 text로 구성해서 넘기게 됨.
+			processData: false, // 진행률을 보는 옵션
 			contentType: false,
+			// 서버의 리턴값
 			success: function(data, status, req){
 				console.log("data: "+ data); // 업로드 된 파일 이름
 				console.log("status: "+ status); // 성공, 실패여부
 				console.log("req: "+ req.status); // 요청코드 값
+				var str = "";
+				if(checkImageType(data)){ // 이미지 파일
+					str="<div><a href='${path}/upload/displayFile?fileName='"+getImageLink(data)+"'>";
+					str+="<img src='${path}/upload/displayFile?fileName="+data+"'></a>";
+				} else{ // 이미지가 아닌경우
+					str="<div>";
+					str+="<a href='${path}/upload/displayFile?fileName='"+data+"'>"+getOriginalName(data)+"</a>";
+				}
+				str+="<span data-src="+data+">[삭제]</span></div>";
+				$(".uploadedList").append(str);
 			}
 		});
-	});
+	}); // ./fileDrop 함수
+	
+	function getOriginalName(fileName) {
+		if(checkImageType(fileName)) { //이미지 파일이면 skip
+			return;
+		}
+		var idx = fileName.indexOf("_")+1; // uuid를 제외한 파일이름
+		return fileName.substr(idx);
+	}
+	
+	function getImageLink(fileName) {
+		if(!checkImageType(fileName)){ //이미지 파일이 아니면 skip
+			return;
+		}
+		var front = fileName.substr(0,12); // 연월일 경로
+		var end = fileName.substr(14);	// s_제거
+		return front+end;
+	}
+	
+	function checkImageType(fileName) {
+		var pattern = /jpg|png|jpeg/i; // 정규표현식( i: 대소문자 무시)
+		return fileName.match(pattern); // match() : 규칙에 맞으면 true
+	}
 });
 </script>
 </html>

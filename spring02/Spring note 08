@@ -87,25 +87,11 @@ lec 13 21:00 ~
   	- uploadFile(), makeIcon(), makeThumbnail(), calcPath(), makeDir()로 구성
 	
   4> contorller.upload.AjaxUploadController.java
-  	=======================================================================================================
-		//컨트롤러 bean 설정
-		@Controller
-		public class AjaxUploadController {
-			//로깅을 위한 변수
-			private static final Logger logger = LoggerFactory.getLogger(AjaxUploadController.class);
-			
-			//업로드 디렉토리 : servlet-context.xml에 설정되어 있음
-			//설정파일에서 값을 읽어와 변수에 대입하므로, 결과적으로 String uploadPath="e:/upload";와 동일.
-			@Resource(name="uploadPath")
-			String uploadPath;
-			
-			//파일첨부 페이지로 이동
-			@RequestMapping(value="/upload/uploadAjax", method=RequestMethod.GET)
-			public String uploadAjax() {
-				return "/upload/uploadAjax";
-			}
-		}
-  	=======================================================================================================
+  	- 동일 url이 존재하더라도 요청방식에 따라 구별되어 중복될 수 있음.
+		> @RequestMapping(value="/upload/uploadAjax", method=RequestMethod.POST, produces="text/plain;charset=utf-8")
+	- @ResponseBody : 서버 --> 클라이언트(뷰가 아닌 데이터 리턴)
+	- @RequestBody : 클라이언트 --> 서버(json 형식으로 전달)
+	- ResponseEntity : 메시지 + http상태 코드
 
   5> uploadAjax.jsp
   	- drag&drop방식으로 파일 업로드.

@@ -35,7 +35,7 @@ public class UploadFileUtils {
 		String uploadedFileName = null;
 		
 		// 이미지 파일은 썸네일 사용
-		if(MediaUtils.getMediaType(formatName) != null) {
+		if(MediaUtils.getMediaType(formatName) != null) { //이미지 파일이면
 			//썸네일 생성
 			uploadedFileName = makeThumbnail(uploadPath, savedPath, savedName);
 		} else {
@@ -87,8 +87,9 @@ public class UploadFileUtils {
 	}
 	
 	// 디렉토리 생성
-	// String... : 가변사이즈 배열변수
+	// String... : 가변사이즈 매개변수. paths --> 배열 참조변수
 	private static void makeDir(String uploadPath, String... paths) {
+		// 디렉토리가 존재하면 skip
 		if(new File(paths[paths.length - 1]).exists()) {
 			return;
 		}
