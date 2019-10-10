@@ -84,10 +84,33 @@ lec 13 21:00 ~
   	- uuid는 밀리세컨드+db시퀀스로 구성되며 16바이트 (128비트), 32개의 십육진수로 표현, 총 36개 문자.
   		> 32개 문자와 4개의 하이픈 : 8-4-4-4-12
   		> 550e8400-e29b-41d4-a716-446655440000
+  	- uploadFile(), makeIcon(), makeThumbnail(), calcPath(), makeDir()로 구성
 	
-  
+  4> contorller.upload.AjaxUploadController.java
+  	=======================================================================================================
+		//컨트롤러 bean 설정
+		@Controller
+		public class AjaxUploadController {
+			//로깅을 위한 변수
+			private static final Logger logger = LoggerFactory.getLogger(AjaxUploadController.class);
+			
+			//업로드 디렉토리 : servlet-context.xml에 설정되어 있음
+			//설정파일에서 값을 읽어와 변수에 대입하므로, 결과적으로 String uploadPath="e:/upload";와 동일.
+			@Resource(name="uploadPath")
+			String uploadPath;
+			
+			//파일첨부 페이지로 이동
+			@RequestMapping(value="/upload/uploadAjax", method=RequestMethod.GET)
+			public String uploadAjax() {
+				return "/upload/uploadAjax";
+			}
+		}
+  	=======================================================================================================
 
-
+  5> uploadAjax.jsp
+  	- drag&drop방식으로 파일 업로드.
+  	- 브라우저의 기본 기능인 파일 열기를 막고 실행되도록 처리.
+  	- js: 기본효과 막기/ 파일추가/삭제 /섬네일 생성판단 등등..
 
 
 

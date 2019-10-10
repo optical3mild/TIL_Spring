@@ -85,4 +85,18 @@ public class UploadFileUtils {
 		logger.info(datePath);
 		return datePath;
 	}
+	
+	// 디렉토리 생성
+	// String... : 가변사이즈 배열변수
+	private static void makeDir(String uploadPath, String... paths) {
+		if(new File(paths[paths.length - 1]).exists()) {
+			return;
+		}
+		for (String path : paths) {
+			File dirPath = new File(uploadPath + path);
+			if (!dirPath.exists()) {
+				dirPath.mkdir(); // 디렉토리 생성
+			}
+		}
+	}
 }
