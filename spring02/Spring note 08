@@ -227,6 +227,80 @@ lec 14 21:00 ~
 		}
 	============================================================================================================
 
+>> lec 15 1:01:00 ~
+13. Smart Editor
+
+ 1) Smart Editor
+ 	- WYSIWYG(위지윅 에디터, what you see is what you get)
+ 	- 사용자가 현제 화면에서 보고있는 내용과 동일한 html code를 생성하는 에디터
+ 	- 네이버, 다음 에디터, CKEditor(opensource), SummerNote(opensource) 등
+ 
+ 2) CKEditor
+ 	- http://ckeditor.com, 4.8버전으로 실습
+	- 이미지 업로드를 위해서는 별도의 작업필요
+	- ckeditor 홈페이지에서 다운로드 필요 https://ckeditor.com/ckeditor-4/download/, standard package
+	- 받은 파일을 압축해제하고 views/에 복사
+	
+ 3) CKEditor 실습예제
+  1> servlet-context.xml에 리소스 매핑 추가
+ 	- <resources location="/WEB-INF/views/ckeditor/" mapping="/ckeditor/**" />
+  2> 대상 화면에 적용
+ 	- ckeditor.js참조 : <script src="${path}/ckeditor/ckeditor.js"></script>
+  	- ckeditor를 적용할 태그에 작성
+  		======================================================================================================
+		<div style="width:80px;">
+			내용
+			<textarea id="description" name="description" rows="5" cols="80" placeholder="상품설명을 입력하세요">
+			</textarea>
+			
+			<!-- textarea를 스마트 에디터로 변경 -->
+			<script>
+			//id가 description인 태그에 ckeditor를 적용시킴.
+			//CKEDITOR.replace("description"); // 이미지 업로드 안됨.
+			//이미지 업로드를 할 경우
+			CKEDITOR.replace("description", {
+				// 이미지 업로드 탭 기능 활성화, 파일업로드 컨트롤러 작업필요.
+				filebrowserUploadUrl : "${path}/imageUpload.do"
+			});
+			</script>
+		</div>
+  		======================================================================================================
+	- shop/write.jsp에 적용
+	- 적용 후에는 대상태그를 숨기고 해당위치에 ckeditor를 보여주는 태그가 새로 생성되며, 입력도 이곳에 된다.
+	- 기존에 존재하던 form전송 script를 변경하여야 함.
+  
+  3> 이미지 업로드 기능
+  	- 스크립트 변경
+  		======================================================================================================
+			CKEDITOR.replace("description", {
+				// 이미지 업로드 탭 기능 활성화, 파일업로드 컨트롤러 작업필요.
+				filebrowserUploadUrl : "${path}/imageUpload.do"
+			});
+  		======================================================================================================
+	
+	- com.example.spring02.controller.upload : ImageUploadController.java
+	
+	- 해당 기능의 이미지 업로드는 설명란에 입력됨
+	- 업로드된 상품 db의 이미지 항목을 확인하면 링크만 존재하는것을 확인할 수 있음.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

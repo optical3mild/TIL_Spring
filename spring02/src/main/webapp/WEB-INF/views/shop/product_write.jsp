@@ -54,7 +54,18 @@
 	</table>
 </form>
 </body>
+<script src="${path}/ckeditor/ckeditor.js"></script>
 <script type="text/javascript">
+	
+	//id가 description인 태그에 ckeditor를 적용시킴. 이미지 업로드 안됨.
+	//CKEDITOR.replace("description"); //태그의 id와 name을 모두 참조하여 변경
+	
+	//이미지 업로드를 할 경우
+	CKEDITOR.replace("description", {
+		// 이미지 업로드 탭 기능 활성화, 파일업로드 컨트롤러 작업필요.
+		filebrowserUploadUrl : "${path}/imageUpload.do"
+	});
+	
 	function product_write() {
 		//태그를 name으로 조회할 경우 : 계층구조를 따라가야 함.
 		//var product_name = document.form1.product_name.value;
@@ -74,11 +85,12 @@
 			$("#price").focus();
 			return;
 		}
-		if(description == "") {
-			alert("상품설명을 입력하세요");
-			$("#description").focus();
-			return;
-		}
+		//ckeditor를 사용하기 위해 주석처리
+		//if(description == "") {
+		//	alert("상품설명을 입력하세요");
+		//	$("#description").focus();
+		//	return;
+		//}
 		//폼 데이터를 받을 주소
 		document.form1.action="${path}/shop/product/insert.do";
 		//폼 데이터를 서버에 전송

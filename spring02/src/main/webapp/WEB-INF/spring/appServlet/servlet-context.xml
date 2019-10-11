@@ -25,6 +25,7 @@
 	<resources mapping="/include/**" location="/WEB-INF/views/include/" />
 	<resources mapping="/images/**" location="/WEB-INF/views/images/" />
 	<resources mapping="/json/**" location="/WEB-INF/views/json/" />
+	<resources mapping="/ckeditor/**" location="/WEB-INF/views/ckeditor/" />
 
 	<!-- Resolves views selected for rendering by @Controllers to .jsp resources 
 		in the /WEB-INF/views directory -->
