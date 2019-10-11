@@ -108,9 +108,39 @@ lec 14 21:00 ~
   	- uploadAjax.jsp : 삭제요청 기능 - span클릭 시 ajax로 삭제요청 + 리턴값에 따라 태그 삭제
   	- AjaxUploadController.java : 컨트롤러에서 요청값을 받아 삭제, Status리턴
 
+>> lec 15 33:00 ajax upload 종료
 
 
+12. 이메일 보내기
 
+ 1) 이메일 서비스 구축방법
+ 	- 이메일 발송을 위해서는 메일 서버가 필요함
+ 	- 자체구축
+ 	- 포털사이트에서 제공하는 smtp(Simple Mail Transfer Protocol) server활용
+ 	- gmail의 경우 : 내 계정-로그인 및 보안 - 기기활동 및 알림 - 보안수준이 낮은 앱 허용 옵션을 사용으로 설정
+ 	
+ 2) 실습예제
+  1> pom.xml 에 라이브러리 추가 : javax.mail/mail/1.4.7, org.springframework/spring-context-support/spring version
+  	- 빌드가 잘 안될 경우 스프링의 버전을 조정할 필요가 있음
+  	- 유사한 이름의 라이브러리 주의 : artifactId를 확인할 것
+  	=============================================================================================================
+		<!-- 이메일 발송 관련 라이브러리 -->
+		<!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+		<dependency>
+		    <groupId>javax.mail</groupId>
+		    <artifactId>mail</artifactId>
+		    <version>1.4.7</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-context-support -->
+		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-context-support</artifactId>
+		    <version>${org.springframework-version}</version>
+		</dependency>
+  	=============================================================================================================
+  
+  2> root-context.xml에 메일 발송을 위한 bean등록
+  	
 
 
 
