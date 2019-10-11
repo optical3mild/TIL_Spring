@@ -119,7 +119,7 @@ lec 14 21:00 ~
  	- 포털사이트에서 제공하는 smtp(Simple Mail Transfer Protocol) server활용
  	- gmail의 경우 : 내 계정-로그인 및 보안 - 기기활동 및 알림 - 보안수준이 낮은 앱 허용 옵션을 사용으로 설정
  	
- 2) 실습예제
+ 2) 실습예제 설정
   1> pom.xml 에 라이브러리 추가 : javax.mail/mail/1.4.7, org.springframework/spring-context-support/spring version
   	- 빌드가 잘 안될 경우 스프링의 버전을 조정할 필요가 있음
   	- 유사한 이름의 라이브러리 주의 : artifactId를 확인할 것
@@ -140,12 +140,92 @@ lec 14 21:00 ~
   	=============================================================================================================
   
   2> root-context.xml에 메일 발송을 위한 bean등록
-  	
+  	=============================================================================================================
+		<!-- 메일 발송을 위한 bean -->
+		<bean id = "mailSender" class = "org.springframework.mail.javamail.JavaMailSenderImpl">
+			<property name="host" value="smtp.gmail.com" />
+			<property name="port" value="587" />
+			<property name="username" value="이메일 주소" />
+			<property name="password" value="비밀번호" />
+			<property name="javaMailProperties">
+				<props>
+					<prop key="mail.transport.protocol">smtp</prop>
+					<prop key="mail.smtp.auth">true</prop>
+					<prop key="mail.smtp.starttls.enable">true</prop>
+					<prop key="mail.debug">true</prop>
+				</props>
+			</property>
+		</bean>
+  	=============================================================================================================
 
-
-
-
-
+ 3) 코드 작성
+  1> com.example.spring02.model.email : EmailDTO.java - 필드, getter/setter toString
+  2> com.exmaple.spring02.service.email : EmailService.java, EmailServiceImpl.java
+  	- root-context.xml에 등록된 bean을 inject하여 사용.
+  		========================================================================================================
+			//서비스 빈으로 등록
+			@Service
+			public class EmailServiceImpl implements EmailService {
+				
+				@Inject
+				JavaMailSender mailSender; // root-context.xml에 설정한 bean
+				
+				@Override
+				public void sendMail(EmailDTO dto) {
+					try {
+						// 이메일 객체
+						MimeMessage msg = mailSender.createMimeMessage();
+						// 받는사람
+						msg.addRecipient(RecipientType.TO, new InternetAddress(dto.getReceiveMail()));
+						// 보내는 사람(이메일 주소 + 이름)
+>>						msg.addFrom(new InternetAddress[] {
+							new InternetAddress(dto.getSenderMail(), dto.getSenderName())
+						});
+						//이메일 제목
+						msg.setSubject(dto.getSubject(), "utf-8");
+						//이메일 본문
+						msg.setText(dto.getMessage(), "utf-8");
+						//이메일 보내기
+						mailSender.send(msg);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			
+			}
+  		========================================================================================================
+  
+  3> view 구성
+  	- 메뉴 추가 : views/include/admin_menu.jsp
+	- 작성페이지 : views/email/write.jsp
+  
+  4> com.example.spring02.controller.email : EmailController.java - 이메일 페이지로 이동/ 발송
+	============================================================================================================
+		@Controller
+		@RequestMapping("email/*")
+		public class EmailController {
+			
+			@Inject
+			EmailService emailService;
+			
+			@RequestMapping("write.do")
+			public String write() {
+				return "/email/write";
+			}
+			
+			@RequestMapping("send.do")
+			public String send(@ModelAttribute EmailDTO dto, Model model) {
+				try {
+					emailService.sendMail(dto);
+					model.addAttribute("message", "이메일이 발송되었습니다.");
+				} catch (Exception e) {
+					e.printStackTrace();
+					model.addAttribute("message", "이메일 발송실패...");
+				}
+				return "/email/write";
+			}
+		}
+	============================================================================================================
 
 
 
