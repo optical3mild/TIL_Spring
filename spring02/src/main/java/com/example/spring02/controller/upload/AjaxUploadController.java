@@ -1,5 +1,6 @@
 package com.example.spring02.controller.upload;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
@@ -101,4 +102,26 @@ public class AjaxUploadController {
 		return entity;
 	}
 
+	// 이미지파일 --> 썸네일 삭제, 원본이미지 삭제
+	// 이미지파일이 아닌경우 --> 원본파일 삭제
+	@ResponseBody // 뷰가 아닌 데이터를 리턴
+	@RequestMapping(value="/upload/deleteFile", method=RequestMethod.POST)
+	public ResponseEntity<String> deleteFile(String fileName){
+		logger.info("fileName: " + fileName);
+		// 확장자 검사 - 확장자 문자열 추출
+		String formatName = fileName.substring(fileName.lastIndexOf(".") + 1); // .다음부터 문자열 절삭
+		// static class에서 해당 값을 가져옴 - 해당하는 값이 없는 경우 null이 저장되어 있음.
+		MediaType mType = MediaUtils.getMediaType(formatName);
+		if(mType != null) { // 이미지 파일이면 원본이미지 삭제
+			String front = fileName.substring(0,12);
+			String end = fileName.substring(14);
+			// File.separatorChar : 유닉스 / 윈도우즈 \
+			new File(uploadPath + (front+end).replace('/', File.separatorChar)).delete();
+		}
+		// 원본파일 삭제(이미지이면 썸네일 삭제), replace("oldchar", "newchar")
+		new File(uploadPath + fileName.replace('/', File.separatorChar)).delete();
+		return new ResponseEntity<String>("deleted", HttpStatus.OK);
+	}
+	
+	
 }

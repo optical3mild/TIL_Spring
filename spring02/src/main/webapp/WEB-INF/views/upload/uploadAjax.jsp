@@ -81,6 +81,28 @@ $(function(){
 		});
 	}); // ./fileDrop 함수
 	
+	// 첨부파일 삭제함수
+	// data: "fileName="+$(this).attr("data-src")  =  data: {fileName: $(this).attr("data-src")},
+	$(".uploadedList").on("click", "span", function(event){
+		//현재 클릭한 태그 $(this)
+		var that = $(this);
+		$.ajax({
+			url: "${path}/upload/deleteFile",
+			type: "post",
+			// 클릭한 태그의 속성 중 data-src를 보낼 값으로 지정.
+			data: {
+				fileName: $(this).attr("data-src")
+			},
+			dataType: "text",
+			success: function(result){
+				// 요청이 성공적으로 수행되면 화면에서 해당 div를 삭제한다.
+				if(result == "deleted"){
+					that.parent("div").remove();
+				}
+			}
+		})
+	});
+	
 	function getOriginalName(fileName) {
 		if(checkImageType(fileName)) { //이미지 파일이면 skip
 			return;

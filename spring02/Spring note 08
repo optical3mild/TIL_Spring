@@ -1,4 +1,4 @@
-lec 13 21:00 ~
+lec 14 21:00 ~
 
 10. 코드 난독화
 
@@ -72,7 +72,7 @@ lec 13 21:00 ~
 	- jar파일을 배포하는 경우, 이처럼 난독화를 시킨 후 배포하여야 함.
 
 
->>lec13 47:00	
+>>lec14 47:00	
 11. 파일 업로드 (ajax방식)
 
  1) 실습예제 : ajax방식으로 이미지 업로드
@@ -85,6 +85,11 @@ lec 13 21:00 ~
   		> 32개 문자와 4개의 하이픈 : 8-4-4-4-12
   		> 550e8400-e29b-41d4-a716-446655440000
   	- uploadFile(), makeIcon(), makeThumbnail(), calcPath(), makeDir()로 구성
+  	- 가변사이즈 매개변수, 배열 참조변수
+  		> private static void makeDir(String uploadPath, String... paths) { ... }
+  			- String... : 가변사이즈 매개변수. paths --> 배열 참조변수
+		> makeDir(uploadPath, yearPath, monthPath, datePath) 
+			- 첫번째 매개변수 이후 세 변수값은 String... paths로 정의된 것.
 	
   4> contorller.upload.AjaxUploadController.java
   	- 동일 url이 존재하더라도 요청방식에 따라 구별되어 중복될 수 있음.
@@ -98,8 +103,10 @@ lec 13 21:00 ~
   	- 브라우저의 기본 기능인 파일 열기를 막고 실행되도록 처리.
   	- js: 기본효과 막기/ 파일추가/삭제 /섬네일 생성판단 등등..
 
-
-
+>> lec 15 ~ 화면에서 삭제기능 추가
+  6> 삭제기능 추가 --> 이미지 클릭 시 오류발생 (400)
+  	- uploadAjax.jsp : 삭제요청 기능 - span클릭 시 ajax로 삭제요청 + 리턴값에 따라 태그 삭제
+  	- AjaxUploadController.java : 컨트롤러에서 요청값을 받아 삭제, Status리턴
 
 
 
