@@ -26,6 +26,7 @@
 	<resources mapping="/images/**" location="/WEB-INF/views/images/" />
 	<resources mapping="/json/**" location="/WEB-INF/views/json/" />
 	<resources mapping="/ckeditor/**" location="/WEB-INF/views/ckeditor/" />
+	<resources mapping="/summernote/**" location="/WEB-INF/views/summernote/" />
 
 	<!-- Resolves views selected for rendering by @Controllers to .jsp resources 
 		in the /WEB-INF/views directory -->

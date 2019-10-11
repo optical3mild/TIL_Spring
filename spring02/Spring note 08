@@ -283,29 +283,50 @@ lec 14 21:00 ~
 	- 해당 기능의 이미지 업로드는 설명란에 입력됨
 	- 업로드된 상품 db의 이미지 항목을 확인하면 링크만 존재하는것을 확인할 수 있음.
 
+>> lec 15 1:37:00 ~
 
+ 4) SummerNote
+ 	- http://summernote.org
+ 	- 이미지를 텍스트 형식으로 저장함(테이블에 이미지 전체 저장) 
+ 		> *ckeditor - 이미지 업로드, 테이블에 이미지 태그만 저장)
+ 		> 이미지 전체를 저장하므로 컨트롤러를 따로 구현할 필요가 없음.
+ 		> db가 무거워짐
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  		
+	- 다운로드 받아 views/에 압축해제한 폴더안의 dist폴더를 복사하여 붙여넣고 폴더이름 변경
+	
+  1> servlet-context.xml에 리소스 매핑 추가
+ 	- <resources location="/WEB-INF/views/summernote/" mapping="/summernote/**" />
+ 
+  2> 대상화면에 적용 - memo_list.jsp
+  	============================================================================================================
+	** bootstrap, jquery, summernote 설정 필요.
+	
+		<!-- bootstrap style 적용 -->
+		<link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
+		
+		<!-- bootstrap script 적용 -->
+		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script>
+		
+		<!-- summernote style 적용 -->
+		<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote.css" rel="stylesheet">
+		
+		<!-- summernote script 적용 -->
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote.js"></script>
+		
+		...
+		메모 : <textarea rows="3" cols="50" name="memo" id="memo"></textarea>
+		...
+		
+		<script>
+		$(function() {
+			//id가 memo인 태그를 summernote로 변경.
+			$("#memo").summernote({
+				height: 150,
+				width: 300
+			});	
+		});
+		</script>
+  	============================================================================================================
+  	> 이미지 등록시 화면에는 표시되지만 db의 테이블 필드 사이즈가 작아 500에러 발생
+  	> 테이블의 해당 필드 형식을 clob(mysql: text)으로 변경 --> 이미지와 문자열 모두 정상출력 
+	> 수정화면(view.jsp)에서도 동일하게 수정
