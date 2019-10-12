@@ -16,6 +16,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		insert into board(bno,title,content,writer)
 			values((select ifnull(max(bno)+1,1) from board a), #{title}, #{content}, #{writer})
 	</insert>
+	
+	<insert id="addAttach">
+		insert into attach(fullName, bno) values (#{fullName}, (select ifnull(max(bno),1) from board a))
+	</insert>
 </mapper>
 
 

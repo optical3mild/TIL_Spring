@@ -146,7 +146,7 @@ lec 16 ~
 		);
 		
 		--foreign key설정
-		alter table attach constraint fk_board_attach foreign key(bno) references board(bno);
+		alter table attach add constraint fk_board_attach foreign key(bno) references board(bno);
   	=============================================================================================================
   	MYSQL ======================================================================================================
 		create table attach(
@@ -157,7 +157,7 @@ lec 16 ~
 		);
 		
 		/*foreign key설정*/
-		alter table attach constraint fk_board_attach foreign key(bno) references board(bno);
+		alter table attach add constraint fk_board_attach foreign key(bno) references board(bno);
   	=============================================================================================================
 
   5> com.example.spring02.model.board.dto : ReplyDTO.java
@@ -278,14 +278,106 @@ lec 16 ~
 		</insert>
   	===========================================================================================================
 
+ 7) 글쓰기 페이지 파일첨부 기능 - drag&drop
+  1> write.jsp : script 추가
+	===========================================================================================================
+		<!-- 페이지에서 사용할 javascript 메서드 -->
+		<script src="${path }/include/js/common.js"></script>
+		
+		<script type="text/javascript">
+		$(function(){
+			$("#btnSave").click(function(){
+				var str = "";
+				// uploadedList 내부의 .file 태그를 각각 반복
+				$("#uploadedList .file").each(function(i) { // i=index 해당하는 태그 목록의 순서대로 index 생성
+					//hidden 태그 수정하여 추가. 
+					//$(this) = 현재 작업중인 태그
+					str += "<input type='hidden' name='files["+i+"]' value='" + $(this).val() +"'>";	
+				});
+				// 폼에 hidden 태그들을 붙여 폼의 정보(제목, 내용)와 같이 hidden 태그를 전송
+				$("#form1").append(str);
+				document.form1.submit();
+			});
+			
+			$(".fileDrop").on("dragenter dragover", function(e){
+				//기본효과 막음 : drop의 기본효과 = 해당 파일을 브라우저에서 보여줌
+				e.preventDefault();
+			});
+		
+			$(".fileDrop").on("drop", function(e){
+				//기본효과 막음
+				e.preventDefault();
+				//첫번째 첨부파일 : 다중업로드 불가
+				var files = e.originalEvent.dataTransfer.files;
+				var file = files[0];
+				//폼 데이터에 첨부파일 추가
+				var formData = new FormData();
+				formData.append("file", file);
+				$.ajax({
+					url: "${path}/upload/uploadAjax",
+					data: formData,
+					dataType: "text", // 웹에서 정보를 넘기므로 text형태로 넘김
+					processData: false,	// 진행률 옵션
+					contentType: false,
+					type: "post",
+					success: function(data) {
+						console.log(data);
+						//data : 업로드한 파일 정보, http상태코드
+						var fileInfo = getFileInfo(data);
+						console.log(fileInfo);
+						var html = "<a href='" +fileInfo.getLink+"'>" + fileInfo.fileName+"</a><br>";
+						
+						// hidden tag생성
+						html += "<input type = 'hidden' class='file' value='" + fileInfo.fullName+ "'>";
+						$("#uploadedList").append(html);
+					}
+				});
+			});
+		});
+		</script>
+	===========================================================================================================
+		> AjaxUploadController에서 처리. (이전 예제에서 구현한 코드 사용. )
+		> 사용할 메서드를 따로 file로 만들어 사용
 
+>> **lec 16 1:28:55 파일첨부 기능구현 설명	
+		> 확인 버튼을 눌렀을 때, 첨부된 파일의 정보는 첨부파일 테이블에 저장되도록 기능 구현
+		> 전송버튼을 눌렀을 때, drop시 만들어진 hidden tag를 찾아 form 태그에 내용을 바꾸어 추가.
+		> boardController로 데이터가 넘어가 files필드에 hidden tag의 name(files[0]등)에 따라 value가 배열로 저장됨
 
+  2> BoardServiceImpl : create()
+  	- 컨트롤러에서 받은 dto정보를 각각의 테이블에 저장
+  	- board table에 레코드 추가 : boardDao.create(dto)
+  	- attach table에 첨부파일 레코드 추가 : boardDao.addAttach(dto);
+  	===========================================================================================================
+		// 하나의 메서드에 두가지 동작 --> 트랜젝션 처리 필요
+		//1. 글쓰기 - 게시물 번호 생성
+		//2. 첨부파일 등록 - 게시물 번호 사용
+		@Transactional
+		@Override
+		public void create(BoardDTO dto) throws Exception {
+			//board 테이블에 레코드 추가
+			boardDao.create(dto);
+			
+			//attach 테이블에 레코드 추가
+			String[] files = dto.getFiles();
+			if(files == null) return; //첨부파일이 없으면 skip
+			for(String name : files) {
+				boardDao.addAttach(name); // attach 테이블에 insert
+			}
+		}
+  	===========================================================================================================
+  		> 하나의 서비스에 두가지 동작이 발생 --> 트랜잭션 처리 필요.
 
+  3> BoardDAOImpl : addAttach()
+  4> boardMapper
+  	===========================================================================================================
+	<insert id="addAttach">
+		insert into attach(fullName, bno) values (#{fullName}, (select ifnull(max(bno),1) from board a))
+	</insert>
+  	===========================================================================================================
+	- select ifnull(max(bno)) from board a 
+		: service에서 board테이블에 레코드를 추가 후 attach테이블에 레코드를 추가 하므로,
+	 	현재 작업중인 레코드 번호는 제일 마지막 번호가 된다.
 
-
-
-
-
-
-
+>> lec 16 종료.
 
