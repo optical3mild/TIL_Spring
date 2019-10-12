@@ -1,0 +1,291 @@
+lec 16 ~
+
+14. 게시판
+ 1) 게시판의 주요기능
+ 	- 로그인 후 게시물 등록, 수정이 가능하도록 처리 (로그인 한 사용자만 등록, 수정가능)
+ 	- 글쓰기(스마트에디터 적용, 태그문자 처리, 공백처리, 줄바꿈 처리)
+ 	- 게시물 상세정보, 조회수 증가 처리
+ 	- 게시물 수정/ 삭제(delete방식, update방식)
+ 	- 검색기능
+ 	- 페이지 나누기
+ 	
+ 2) 파일 업로드(ajax)
+ 	- 게시판에 파일 첨부
+ 	- 첨부파일 목록, 다운로드, 삭제
+ 	- 수정화면에서 새로운 파일 올리기
+ 	
+ 3) 댓글기능
+ 	- 일반적인 방식으로 댓글쓰기(RestController, REST방식)
+ 		> $.ajax()함수 호출하여 insert
+ 		> 컨트롤러에서 뷰로 포워딩한 responseText를 html 태그에 출력
+ 	- 컨트롤러에서 ArrayList를 json형식으로 리턴받아 댓글 목록 출력(list_json.do)
+ 	- 목록에 댓글 갯수 표시
+ 	- 댓글 페이지 나누기(댓글 목록은 일반적인 방식으로 처리)
+ 	- 비밀댓글 쓰기, 표시
+ 	- REST방식으로 댓글 쓰기(insert_rest.do)
+ 		> 크롬 확장프로그램을 이용한 입력처리
+ 		> {"replytext":"댓글", "replyer":"kim", "bno":"1", "secret_reply":"n"}
+ 	- REST방식으로 댓글 목록 출력
+ 	- REST방식으로 댓글 상세확인, 수정, 삭제 기능 구현
+ 
+ 4) 구조개요
+  1> 테이블
+  	- member : 회원 정보
+  	- board : 게시물 정보
+  	- reply : 댓글 정보
+  	- attach : 첨부파일 정보
+
+ 5) 글 목록 보기 구현
+  1> 게시판 테이블
+  	ORACLE ======================================================================================================
+		-- cascade constrains 제약조건까지 모두 삭제
+		drop table board cascade constrains;
+		
+		create table board (
+			bno number not null,			--게시물 번호
+			title varchar2(200) not null,	--제목
+			content clob,					--내용
+			writer varchar2(50) not null,	--이름
+			regdate date default sysdate,	--날짜
+			viewcnt number default 0,		--조회수
+			primary key(bno)
+		);
+		
+		-- nvl(A,B) A가 null이면 B, null이 아니면 A
+		delete from board;
+  	=============================================================================================================
+  	
+  	MYSQL ======================================================================================================
+		/* cascade constrains 제약조건까지 모두 삭제*/
+		drop table board cascade constrains;
+		
+		create table board (
+			bno int not null auto_increment,	/*게시물 번호*/
+			title varchar(200) not null,		/*제목*/
+			content text,						/*내용*/
+			writer varchar(50) not null,		/*이름*/
+			regdate datetime default now(),		/*날짜*/
+			viewcnt int default 0,				/*조회수*/
+			primary key(bno)
+		);
+		
+		-- nvl(A,B) A가 null이면 B, null이 아니면 A
+		delete from board;
+		insert into board (bno, title, content, writer) values(1,'제목','내용','kim');
+		select * from board;
+  	=============================================================================================================
+
+  2> menu에 추가 : <a href="${path}/board/list.do">게시판</a>
+  3> com.example.spring02.model.board.dto : BoardDTO.java
+  	------------------------------------------------------------------------------------------------------------
+		public class BoardDTO {
+			// board테이블과 동일한 부분
+			private int bno;
+			private String title;
+			private String content;
+			private String writer;		//작성자 id
+			private Date regdate;		//java.util.Date
+			private int viewcnt;		//조회수
+			
+			// 테이블에 없는 필드 : join하여 가져올 값
+			private String name;		//작성자 이름
+			private int cnt;			//댓글 갯수
+			private String show;		//화면 표시 여부
+			// 첨부파일 테이블을 따로 작성
+			private String[] files;		//첨부파일 이름배열
+			
+			... getter/setter/toString
+		}
+  	------------------------------------------------------------------------------------------------------------
+
+  4> 댓글, 첨부파일 테이블
+  	- 댓글 테이블
+  	ORACLE ======================================================================================================
+		create table reply (
+			rno number not null primary key,	--댓글 번호
+			bno number default 0,				--글 번호
+			replytext varchar2(1000) not null,	--댓글 내용
+			replyer varchar2(50) not null,		--댓글 작성자
+			regdate date default sysdate,		--댓글 등록시간
+			updatedate date default sysdate		--댓글 수정시간
+		);
+		
+		-- bno 필드에 foreign key 설정
+		alter table reply add constraint fk_board foreign key(bno) references board(bno);
+		
+		-- 시퀀스 생성
+		create sequence reply_seq start with 1 increment by 1;
+		
+		insert into reply(rno,bno,replytext,replyer) values(reply_seq.nextval, 1, '댓글...', 'kim');
+  	=============================================================================================================
+  	MYSQL ======================================================================================================
+		create table reply (
+			rno int not null primary key auto_increment, /*댓글 번호 ORACLE의 시퀀스 = AUTO_INCREMENT */
+			bno int default 0,					/*글 번호*/
+			replytext varchar(1000) not null,	/*댓글 내용*/
+			replyer varchar(50) not null,		/*댓글 작성자*/
+			regdate datetime default now(),		/*댓글 작성시간*/
+			updatedate datetime default now()	/*댓글 수정시간*/
+		);
+		
+		/* bno 필드에 foreign key 설정 : add constraint 제약조건이름 foreign key(필드명) references 테이블(필드)*/
+		alter table reply add constraint fk_board foreign key(bno) references board(bno);
+		
+		/*서브쿼리 : select ifnull(max(rno)+1,1) from reply a */
+		insert into reply(rno,bno,replytext,replyer) 
+			values((select ifnull(max(rno)+1,1) from reply a), 1, '댓글...', 'kim');
+  	=============================================================================================================
+
+  	- 첨부파일 테이블
+  	ORACLE ======================================================================================================
+		create table attach(
+			fullName varchar2(150) not null, 	--첨부파일 이름
+			bno number not null,				--board 테이블의 글번호
+			regdate date default sysdate,
+			primary key(fullName)				--파일 이름에 uuid가 붙어 있어 중복x
+		);
+		
+		--foreign key설정
+		alter table attach constraint fk_board_attach foreign key(bno) references board(bno);
+  	=============================================================================================================
+  	MYSQL ======================================================================================================
+		create table attach(
+			fullName varchar(150) not null,		/*첨부파일 이름*/
+			bno int not null,					/*board테이블의 글번호*/
+			regdate datetime default now(),
+			primary key(fullName)				/*파일 이름에 uuid가 붙어 있어 중복x*/
+		);
+		
+		/*foreign key설정*/
+		alter table attach constraint fk_board_attach foreign key(bno) references board(bno);
+  	=============================================================================================================
+
+  5> com.example.spring02.model.board.dto : ReplyDTO.java
+  6> com.example.spring02.model.board.dao : BoardDAO.java, BoardDAOImpl.java
+  	- 게시물 목록 리턴 : listAll()
+		> selectList("namespace.id") : 레코드가 2개 이상
+		> selectOne() : 레코드가 1개
+
+  7> boardMapper.xml작성
+  8> com.example.spring02.service.board : BoardService.java, BoardServiceImpl.java
+  9> com.example.spring02.controller.board : BoardController.java
+  	- BoardController ==> BoardService ==> BoardDAO ==> boardMapper.xml
+  	- HashMap<>() : 여러 데이터를 한번에 묶어 전송가능
+
+  10> views/board/list.jsp작성
+  	- map으로 넘어온 내용 {"count"=val, "list"=val{...} }
+  	
+  11> 목록 화면에서 id대신 이름 출력
+>>	- boardMapper.xml의 listAll query 수정
+	 -----------------------------------------------------------------------------------------------------------
+	 select bno, title, writer, name, regdate, viewcnt 
+	 	from board b, member m 		/*테이블 join*/ 
+	 	where b.writer=m.userid 	/*게시판 테이블의 writer와 멤버 테이블의 userid가 일치하는것*/
+	 	order by bno desc;
+	 -----------------------------------------------------------------------------------------------------------
+
+ 6) 글쓰기 기능
+ 	- 회원제 게시판 : 로그인한 사용자에게만 기능을 열어줌
+ 	- list.jsp 수정 : button을 눌러 글쓰기 화면으로 이동
+  1> controller : write()
+  2> views/board/write.jsp
+  3> 로그인 체크기능 : 회원제 기능을 위한 로그인 체크
+  	- sol 1. 화면에서 버튼을 숨김
+  		> 세션변수를 확인하여 버튼을 보여주거나 숨김 <c:if test="${sessionScope.userid != null}">
+  		> 주소를 직접 입력하면 화면으로 이동가능
+  			- 컨트롤러에서도 세션값을 받아 처리하여야 함
+				-----------------------------------------------------------------------------------------------
+					// sol1. 세션체크하여 로그인여부에 따라 분기
+					@RequestMapping("write.do")
+					public String write(HttpSession session) {
+						if(session.getAttribute("userid") == null) {
+							return "member/login";
+						}
+						// 글쓰기 폼 페이지로 이동
+								return "board/write";
+					}
+				-----------------------------------------------------------------------------------------------
+		> --> 화면과 컨트롤러에서 두번 확인하여야 함.
+	
+	- sol 2. 인터셉터 사용
+		> 요청이 들어왔을 때 인터셉터에서 확인 후 컨트롤러로 넘김
+			- /board/write.do --> LoginInterceptor(preHandle()) --> BoardController
+			
+		> servlet-context.xml에 정의한 loginInterceptor를 사용 (코드는 기 작성한 interceptor패키지 참조)
+			===================================================================================================
+			<!-- 인터셉터 빈을 등록 : class에 전체경로 작성, id는 이 bean을 참조할 변수명 --> 
+			<beans:bean id="loginInterceptor" class="com.example.spring02.interceptor.LoginInterceptor"></beans:bean>
+			
+			<!-- 인터셉터 호출을 위한 url mapping -->
+			<!-- beans:ref bean="참조할 bean의 id" -->
+			<interceptor>
+				<mapping path="/board/write.do" />
+				<mapping path="/board/insert.do" />
+				<mapping path="/board/update.do" />
+				<mapping path="/board/delete.do" />
+			</interceptor>
+			===================================================================================================
+
+		> interceptor.LoginInterceptor
+			===================================================================================================
+			// HandlerInterceptorAdapter 추상클래스 상속
+			// preHandle(), postHandle() 오버라이딩
+			public class LoginInterceptor extends HandlerInterceptorAdapter{
+				
+				// 메인액션이 실행되기 전
+				@Override
+				public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+						throws Exception {
+					// 세션 객체 생성
+					HttpSession session = request.getSession();
+					// 세션이 없으면 = 로그인 되지 않은 상태
+					if(session.getAttribute("userid") == null) {
+						// 로그인 페이지로 이동
+						response.sendRedirect(request.getContextPath() + "/member/login.do?message=nologin");
+						// 메인 액션으로 돌아가지 않음.
+						return false; 
+					} else {
+						// 메인액션으로 이동
+						return true;
+					}
+				}
+			}
+			===================================================================================================
+
+  4> controller : insert()
+  	===========================================================================================================
+		// write.jsp에서 입력한 내용들이 BoardDTO에 저장됨
+		@RequestMapping("insert.do")
+		// @ModelAttribute 생략가능
+		public String insert(@ModelAttribute BoardDTO dto, HttpSession session) throws Exception{
+			// 세션에서 사용자 아이디를 가져옴 
+			//		: 화면에서 넘겨주는 폼 데이터에는 아이디가 없음. 저장을 위해서 세션에서 받아야 한다.
+			String writer = (String)session.getAttribute("userid");
+			dto.setWriter(writer);
+			// 레코드 저장
+			boardService.create(dto);
+			// 게시물 목록으로 이동
+			return "redirect:/board/list.do";
+		}
+  	===========================================================================================================
+  
+  5> service, model(dao) : create() --> create()
+  6> mapper
+  	===========================================================================================================
+  		<insert id="insert">
+			insert into board(bno,title,content,writer)
+				values((select ifnull(max(bno)+1,1) from board a), #{title}, #{content}, #{writer})
+		</insert>
+  	===========================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
