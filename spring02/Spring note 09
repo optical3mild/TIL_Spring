@@ -380,4 +380,92 @@ lec 16 ~
 	 	현재 작업중인 레코드 번호는 제일 마지막 번호가 된다.
 
 >> lec 16 종료.
+>> lec 17
 
+  5> 글쓰기 페이지 스마트 에디터 적용 : write.jsp
+  	===========================================================================================================
+	<!-- CKEditor -->
+	<script src="${path }/ckeditor/ckeditor.js"></script>
+	
+	<script>
+		$(function(){
+			//CKEDTOR적용
+			CKEDITOR.replace("content", {
+				//파일업로드를 처리할 주소
+				filebrowserUploadUrl: "${path}/imageUpload.do"
+			});
+		});
+	</script>
+  	===========================================================================================================
+
+ 2) 페이지 나누기
+ 	- 페이지당 게시물 수 : 10개
+ 	- 전체 게시물 수 : 991개
+ 	- 페이지 계산 : 991/10 = 99.1올림 ==> 100
+ 	
+ 	- 페이지의 시작번호, 끝번호 계산
+ 		> where rn between 1 and 10
+ 		> 1페이지 = 1~10 / 2페이지 = 11~20 ... 99페이지 = 981~990
+
+  1> 테이블 정리
+  	- 게시물 1000개 입력
+  		OARCLE ================================================================================================
+			declare
+				i number := 1;
+			begin
+				while 1<=1000 loop
+					insert into board (bno, title, content, writer) 
+						values((select nvl(max(bno)+1,1) from board), '제목'||i, '내용'||i, 'kim');
+					i := i+1;
+				end loop;
+			end;
+			/
+			select count(*) from board;
+			select * from board;
+  		=======================================================================================================
+  		MYSQL =================================================================================================
+  		**ALTER TABLE `attach` DROP FOREIGN KEY `fk_board_attach`;
+  		
+  		**plsql
+			delimiter $$
+	
+			DROP PROCEDURE IF EXISTS spring.datatest$$
+			
+			CREATE PROCEDURE spring.datatest(idx INT)
+			
+			BEGIN
+				DECLARE i INT DEFAULT 1;
+				while 1<=idx do
+					insert into board (bno, title, content, writer) 
+						values((select ifnull(max(bno)+1,1) from board a), (concat('제목',i)), (concat('내용',i)), 'kim');
+					set i = i+1;
+				END while;
+			END $$;
+			
+			delimiter;
+			
+			CALL spring.datatest(997);
+  		=======================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

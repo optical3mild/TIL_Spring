@@ -39,8 +39,17 @@
 <!-- 페이지에서 사용할 javascript 메서드 -->
 <script src="${path }/include/js/common.js"></script>
 
+<!-- CKEditor -->
+<script src="${path }/ckeditor/ckeditor.js"></script>
+
 <script type="text/javascript">
 $(function(){
+	//CKEDTOR적용
+	CKEDITOR.replace("content", {
+		//파일업로드를 처리할 주소
+		filebrowserUploadUrl: "${path}/imageUpload.do"
+	});
+	
 	$("#btnSave").click(function(){
 		var str = "";
 		// uploadedList 내부의 .file 태그를 각각 반복
