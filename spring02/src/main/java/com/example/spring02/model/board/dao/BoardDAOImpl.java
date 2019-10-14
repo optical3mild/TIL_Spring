@@ -63,15 +63,22 @@ public class BoardDAOImpl implements BoardDAO {
 		return sqlSession.selectList("board.listAll", map);
 	}
 
+	//조회수 증가 처리
 	@Override
 	public void increateViewcnt(int bno) throws Exception {
-		// TODO Auto-generated method stub
-
+		sqlSession.update("board.increaseViewcnt", bno);
 	}
 
+	//레코드 총 갯수
 	@Override
 	public int countArticle() throws Exception {
 		return sqlSession.selectOne("board.countArticle");
+	}
+
+	//레코드 조회
+	@Override
+	public BoardDTO read(int bno) throws Exception {
+		return sqlSession.selectOne("board.read", bno);
 	}
 
 }

@@ -16,4 +16,6 @@ public interface BoardDAO {
 	public List<BoardDTO> listAll(int start, int end) throws Exception;	//목록
 	public void increateViewcnt(int bno) throws Exception;	//조회수 증가처리
 	public int countArticle() throws Exception;			//레코드 갯수 계산
+	
+	public BoardDTO read(int bno) throws Exception;		//레코드 조회
 }

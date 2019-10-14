@@ -76,4 +76,14 @@ public class BoardController {
 		// 게시물 목록으로 이동
 		return "redirect:/board/list.do";
 	}
+	
+	@RequestMapping("view.do")
+	public ModelAndView view(int bno, HttpSession session) throws Exception{
+		// 조회수 증가 처리
+		boardService.increaseViewcnt(bno, session);
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("board/view");	//포워딩할 뷰의 이름
+		mav.addObject("dto", boardService.read(bno));	// 해당 게시물을 가져와 자료 저장
+		return mav; // views/board/view.jsp로 넘어가서 출력됨
+	}
 }

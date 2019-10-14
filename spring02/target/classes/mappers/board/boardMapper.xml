@@ -5,6 +5,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 <!-- 다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
 <mapper namespace="board">
+	<!-- 레코드 목록조회 -->
 	<select id="listAll" resultType = "com.example.spring02.model.board.dto.BoardDTO">
 		SELECT R.*
 			from (
@@ -22,17 +23,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		 	where b.writer=m.userid
 		 	order by bno desc;	-->
 	
+	<!-- 레코드 추가 -->
 	<insert id="insert">
 		insert into board(bno,title,content,writer)
 			values((select ifnull(max(bno)+1,1) from board a), #{title}, #{content}, #{writer})
 	</insert>
 	
+	<!-- 첨부파일 정보 저장 -->
 	<insert id="addAttach">
 		insert into attach(fullName, bno) values (#{fullName}, (select ifnull(max(bno),1) from board a))
 	</insert>
 	
-	<select id = "countArticle" resultType="int">
+	<!-- 레코드 총 갯수 -->
+	<select id="countArticle" resultType="int">
 		select count(*) from board
+	</select>
+	
+	<!-- 조회수 증가 처리 -->
+	<update id="increaseViewcnt">
+		update board set viewcnt = viewcnt+1 where bno=#{bno}
+	</update>
+	
+	<!-- 레코드 조회 -->
+	<select id="read" resultType="com.example.spring02.model.board.dto.BoardDTO">
+		select bno, title, regdate, content, viewcnt, name, writer
+			 from board b, member m
+			 where b.writer=m.userid and bno=#{bno}
 	</select>
 </mapper>
 

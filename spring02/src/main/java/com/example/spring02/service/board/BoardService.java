@@ -2,6 +2,8 @@ package com.example.spring02.service.board;
 
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import com.example.spring02.model.board.dto.BoardDTO;
 
 public interface BoardService {
@@ -12,6 +14,6 @@ public interface BoardService {
 	public void update(BoardDTO dto) throws Exception;
 	public void delete(int bno) throws Exception;
 	public List<BoardDTO> listAll(int start, int end) throws Exception;
-	public void increaseViewcnt() throws Exception;
+	public void increaseViewcnt(int bno, HttpSession session) throws Exception;
 	public int countArticle() throws Exception;
 }

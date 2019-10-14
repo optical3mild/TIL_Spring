@@ -31,7 +31,9 @@ ${map.count }개의 게시물이 있습니다<br>
 	<c:forEach var="row" items="${map.list }">
 		<tr>
 			<td>${row.bno }</td>
-			<td>${row.title }</td>
+			<td>
+				<a href="${path}/board/view.do?bno=${row.bno}">${row.title }</a>
+			</td>
 			<td>${row.name }</td>
 			<td>
 				<fmt:formatDate value="${row.regdate }" pattern="yyyy-MM-dd HH:mm:ss" />

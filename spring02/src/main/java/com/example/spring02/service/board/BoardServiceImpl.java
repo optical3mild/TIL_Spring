@@ -3,6 +3,7 @@ package com.example.spring02.service.board;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,10 +46,10 @@ public class BoardServiceImpl implements BoardService {
 		}
 	}
 
+	// 게시물 가져오기
 	@Override
 	public BoardDTO read(int bno) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return boardDao.read(bno);
 	}
 
 	@Override
@@ -68,12 +69,26 @@ public class BoardServiceImpl implements BoardService {
 		return boardDao.listAll(start, end);
 	}
 
+	//조회수 증가 처리
+	// session을 이용하여 조회수 증가 제한
 	@Override
-	public void increaseViewcnt() throws Exception {
-		// TODO Auto-generated method stub
-
+	public void increaseViewcnt(int bno, HttpSession session) throws Exception {
+		long update_time = 0;
+		if(session.getAttribute("update_time_"+bno) != null) {
+			// 최근에 조회수를 올린 시간
+			update_time = (long)session.getAttribute("update_time_"+bno);
+		}
+		long current_time = System.currentTimeMillis();
+		// 일정시간이 경과한 후 조회수 증가처리
+		if(current_time - update_time > 5*1000)	{
+			// 조회수 증가 처리
+			boardDao.increateViewcnt(bno);
+			// 조회수를 올린 시간 저장
+			session.setAttribute("update_time_"+bno, current_time);
+		}
 	}
 
+	//레코드 총 갯수
 	@Override
 	public int countArticle() throws Exception {
 		return boardDao.countArticle();
