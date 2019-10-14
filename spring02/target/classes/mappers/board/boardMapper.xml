@@ -6,11 +6,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <!-- 다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
 <mapper namespace="board">
 	<select id="listAll" resultType = "com.example.spring02.model.board.dto.BoardDTO">
-		select bno, title, writer, name, regdate, viewcnt 
+		SELECT R.*
+			from (
+				SELECT @rownum:=@rownum+1 AS rn, A.*
+					from (
+						select bno, title, writer, name, regdate, viewcnt 
+					 	from board b, member m
+					 	where b.writer=m.userid
+					 	order by bno desc
+				 	) A, (SELECT @rownum:=0) N
+		) R WHERE R.rn BETWEEN #{start} AND #{end}
+	</select>
+		<!--select bno, title, writer, name, regdate, viewcnt 
 		 	from board b, member m
 		 	where b.writer=m.userid
-		 	order by bno desc;
-	</select>
+		 	order by bno desc;	-->
 	
 	<insert id="insert">
 		insert into board(bno,title,content,writer)
@@ -20,6 +30,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<insert id="addAttach">
 		insert into attach(fullName, bno) values (#{fullName}, (select ifnull(max(bno),1) from board a))
 	</insert>
+	
+	<select id = "countArticle" resultType="int">
+		select count(*) from board
+	</select>
 </mapper>
 
 

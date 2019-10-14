@@ -13,7 +13,7 @@ public interface BoardDAO {
 	
 	public void create(BoardDTO dto) throws Exception;	//글쓰기
 	public void delete(int bno) throws Exception;		//글삭제
-	public List<BoardDTO> listAll() throws Exception;	//목록
+	public List<BoardDTO> listAll(int start, int end) throws Exception;	//목록
 	public void increateViewcnt(int bno) throws Exception;	//조회수 증가처리
 	public int countArticle() throws Exception;			//레코드 갯수 계산
 }

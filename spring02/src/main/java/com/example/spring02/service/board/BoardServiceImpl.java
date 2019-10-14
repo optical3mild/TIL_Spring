@@ -64,8 +64,8 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	@Override
-	public List<BoardDTO> listAll() throws Exception {
-		return boardDao.listAll();
+	public List<BoardDTO> listAll(int start, int end) throws Exception {
+		return boardDao.listAll(start, end);
 	}
 
 	@Override
@@ -76,8 +76,7 @@ public class BoardServiceImpl implements BoardService {
 
 	@Override
 	public int countArticle() throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+		return boardDao.countArticle();
 	}
 
 }

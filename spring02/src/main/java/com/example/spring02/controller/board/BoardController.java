@@ -9,10 +9,12 @@ import javax.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.model.board.dto.BoardDTO;
 import com.example.spring02.service.board.BoardService;
+import com.example.spring02.service.board.Pager;
 
 @Controller	//controller bean
 @RequestMapping("board/*")	//공통적인 url pattern
@@ -22,13 +24,23 @@ public class BoardController {
 	BoardService boardService;
 	
 	@RequestMapping("list.do")	// 세부적인 url pattern
-	public ModelAndView list() throws Exception {
-		List<BoardDTO> list = boardService.listAll();	// 게시물 목록
+	public ModelAndView list(@RequestParam(defaultValue="1") int curPage) throws Exception {
+		//레코드 갯수 계산
+		int count = boardService.countArticle();
+		//페이지 관련 설정
+		Pager pager = new Pager(count, curPage);
+		int start =  pager.getPageBegin();
+		int end = pager.getPageEnd();
+		
+		List<BoardDTO> list = boardService.listAll(start, end);	// 게시물 목록
 		ModelAndView mav = new ModelAndView();
 		HashMap<String, Object> map = new HashMap<>();
 		
 		map.put("list", list);		// map에 자료 저장
-		map.put("count", list.size());
+		map.put("count", count);	// 게시물 총 갯수
+		
+		map.put("pager", pager);	// 페이지 네비게이션을 위한 변수
+		
 		mav.setViewName("board/list"); // 포워딩할 view의 이름
 		mav.addObject("map", map);	//ModelAndView에 map을 저장
 		

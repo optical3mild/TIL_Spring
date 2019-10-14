@@ -399,6 +399,7 @@ lec 16 ~
   	===========================================================================================================
 
  2) 페이지 나누기
+  1> 페이지 / 페이지 블록 계산
  	- 페이지당 게시물 수 : 10개
  	- 전체 게시물 수 : 991개
  	- 페이지 계산 : 991/10 = 99.1올림 ==> 100
@@ -406,8 +407,45 @@ lec 16 ~
  	- 페이지의 시작번호, 끝번호 계산
  		> where rn between 1 and 10
  		> 1페이지 = 1~10 / 2페이지 = 11~20 ... 99페이지 = 981~990
+ 	
+ 	- 시작번호 = (현재페이지 - 1) * 페이지 당 게시물 수 + 1 
+ 		> 2페이지 = (2-1) * 10 + 1 ==> 11
+ 		> 7페이지 = (7-1) * 10 + 1 ==> 61
+ 	
+ 	- 끝번호 = 시작번호 + 페이지당 게시물 수 - 1
+ 		> 1페이지 = 1 + 10 - 1 ==> 10
+ 		> 2페이지 = 11 + 10 - 1 ==> 20
+ 		
+ 	- 전체 페이지 블록 수 = 전체 페이지 갯수 / 10
+ 		> 91/10 ==> 9.1 => 10개
+ 		
+ 	- 현재 페이지가 속한 블록 = (현재 페이지 - 1) / 페이지 블록단위 + 1
+ 		> 1페이지 ==> (1-1)/10 + 1 --> 1 
+ 		> 9페이지 ==> (9-1)/10 + 1 --> 1
+ 		> 57페이지 ==> (57-1)/10 + 1 --> 6
+ 	
+ 	- 페이지 블록의 시작번호 = (현재블록 - 1) * 블록단위 + 1
+ 		> 1블록 ==> (1-1)*10 + 1 ==> 1
+ 		> 2블록 ==> (2-1)*10 + 1 ==> 11
+ 		
+ 	- 페이지 블록의 끝번호 = 블록 시작번호 + 블록단위 - 1
+		> 1블록 ==> 1 + 10 - 1 ==> 10
+		> 2블록 ==> 11 + 10 - 1 ==> 20
+		> 6블록 ==> 51 + 10 - 1 ==> 60
 
-  1> 테이블 정리
+	- 페이지 표시
+		=======================================================================================================
+		ex) 11페이지
+		
+		> 화면 : [이전] 11 12 13 ... 20 [다음]
+		
+		> 몇번째 블록인지 계산
+			- (현재페이지 -1 ) / 페이지 블록단위 +1 : (11 - 1) / 10 + 1 = 2번째 블록 (몇페이지 ~ 몇페이지)
+		> 해당 블록의 첫번째 페이지 계산
+			- (현재블록 - 1) * 블록단위 + 1 : (2-1)*10 + 1 = 11페이지
+		=======================================================================================================
+
+  2> 테이블 정리
   	- 게시물 1000개 입력
   		OARCLE ================================================================================================
 			declare
@@ -435,7 +473,7 @@ lec 16 ~
 			
 			BEGIN
 				DECLARE i INT DEFAULT 1;
-				while 1<=idx do
+				while i<=idx do
 					insert into board (bno, title, content, writer) 
 						values((select ifnull(max(bno)+1,1) from board a), (concat('제목',i)), (concat('내용',i)), 'kim');
 					set i = i+1;
@@ -447,16 +485,152 @@ lec 16 ~
 			CALL spring.datatest(997);
   		=======================================================================================================
 
+>>	- select query 수정
+		> 전체 레코드를 조회하고, 결과를 임시테이블에 넣고 레코드에 일련번호를 매긴 후 필요한 부분을 출력.
+		ORACLE ================================================================================================
+			-- rownum : 출력순서
+			select *
+			from (
+				/*해당 select로 출력되는 모든 레코드를 A라는 테이블로 정의 + rownum(일련번호)*/
+				select rownum as rn, A.*
+				from (
+					/* 전체 레코드를 불러오는 query */
+					select bno, title, writer, name, regdate, viewcnt 
+				 	from board b, member m
+				 	where b.writer=m.userid
+				 	order by bno desc
+			 	) A
+			) where rn between 1 and 10;
+		=======================================================================================================
 
+		MYSQL ================================================================================================
+		** MYSQL의 모든 서브쿼리는 alias가 필요하다. EX) select * from board b... --> b 가 alias
+			SELECT R.*
+			from (
+				/*해당 select로 출력되는 모든 레코드를 A라는 테이블로 정의 + @rownum(일련번호 변수)*/
+				SELECT @rownum:=@rownum+1 AS rn, A.*
+				from (
+					/* 전체 레코드를 불러오는 query */
+					select bno, title, writer, name, regdate, viewcnt 
+				 	from board b, member m
+				 	where b.writer=m.userid
+				 	order by bno desc
+			 	) A, /* 검색된 내용 --> 임시테이블의 형태를 가짐. alias로 테이블의 이름을 부여 */
+			 	(SELECT @rownum:=0) N /* 서브쿼리로 변수 초기화 */
+			) R WHERE R.rn BETWEEN #{start} AND #{end}
+		=======================================================================================================
 
+  3> 페이저 클래스 작성
+  	- service.board : Pager.java
+  		> 각 변수, 페이지/블록의 계산 메소드 작성
+  
+  4> controller 수정 : list.do
+  	=========================================================================================================
+		@RequestMapping("list.do")	// 세부적인 url pattern
+		public ModelAndView list(@RequestParam(defaultValue="1") int curPage) throws Exception {
+			//레코드 갯수 계산
+			int count = boardService.countArticle();
+			//페이지 관련 설정
+			Pager pager = new Pager(count, curPage);
+			int start =  pager.getPageBegin();
+			int end = pager.getPageEnd();
+			
+			List<BoardDTO> list = boardService.listAll(start, end);	// 게시물 목록
+			ModelAndView mav = new ModelAndView();
+			HashMap<String, Object> map = new HashMap<>();
+			
+			map.put("list", list);		// map에 자료 저장
+			map.put("count", count);	// 게시물 총 갯수
+			
+			map.put("pager", pager);	// 페이지 네비게이션을 위한 변수
+			
+			mav.setViewName("board/list"); // 포워딩할 view의 이름
+			mav.addObject("map", map);	//ModelAndView에 map을 저장
+			
+			return mav; // board/list.jsp로 이동
+		}
+  	=========================================================================================================
+	- 레코드 총 갯수 필요		
+		> service, model(dao) 작성 : countArticle(), return 값 int
+		> mapper 작성
+			==================================================================================================
+			  	<select id = "countArticle" resultType="int">
+					select count(*) from board
+				</select>
+			==================================================================================================
+	- 요청에 따라 페이지가 바뀌어야 하므로, 매개변수값을 받도록 추가한다.
+	
+	- boardService와 boardDao의 listAll을 매개변수(start, end)가 들어간 메소드로 수정
+		> 인터페이스와 메소드 모두 매개변수를 받아 전달하도록 수정
+		> DAOImpl에서는 sqlSession의 함수인 selectList()가 여러개의 매개변수를 전달 할 수 없음
+			--> dto나 map으로 묶어 전달.
+			==================================================================================================
+				// 게시물 목록 리턴
+				@Override
+				public List<BoardDTO> listAll(int start, int end) throws Exception {
+					// Map<key의 자료형, value의 자료형>
+					Map<String, Object> map = new HashMap<>();
+					map.put("start", start);
+					map.put("end", end);
+					// mapper에는 2개 이상의 값을 전달 할 수 없음(dto또는 map사용)
+					return sqlSession.selectList("board.listAll", map);
+				}
+			==================================================================================================
+		> mapper에 map으로 값이 전달 : 속성에 parameterMap설정으로 받을 수 있고, 생략가능하다.
 
-
-
-
-
-
-
-
+	- 매개값을 넣어 작동 test : http://localhost:8080/spring02/board/list.do?curPage=10
+	
+  5> 화면 하단에 페이지 번호 추가 : views/board/list.jsp
+  	=========================================================================================================
+		<!-- 페이지 네비게이션 출력 -->
+		<tr>
+			<td colspan = "5" align="center">
+				<!-- [처음] : 첫번째 블록인 경우 표시되지 않음-->
+				<c:if test="${map.pager.curPage > 1 }">
+					<a href="#" onclick="list('1')">[처음]</a>
+				</c:if>
+	
+				<!-- [이전] : 첫번째 블록인 경우 표시되지 않음-->
+				<c:if test="${map.pager.curBlock > 1 }">
+					<a href="#" onclick="list('${map.pager.prevPage}')">[이전]</a>
+				</c:if>
+				
+				<!-- forEach var="개별데이터" begin="시작" end="끝" : 횟수가 고정적-->
+				<c:forEach var="num" begin="${map.pager.blockBegin }" end="${map.pager.blockEnd }">
+					<c:choose>
+						<c:when test="${num == map.pager.curPage }">
+							<!-- 현재 페이지인 경우 숫자만 출력하고 색을 넣어 현재페이지 표시 -->
+							<span style="color:red;">${num }</span>
+						</c:when>
+						<c:otherwise>
+							<a href="#" onclick="list('${num}')">${num }</a>
+						</c:otherwise>
+					</c:choose>
+				</c:forEach>
+				
+				<!-- [다음] : 마지막 블록인 경우 표시되지 않음-->
+				<c:if test="${map.pager.curBlock < map.pager.totBlock}">
+					<a href="#" onclick="list('${map.pager.nextPage}')">[다음]</a>
+				</c:if>
+	
+				<!-- [끝] : 마지막 블록인 경우 표시되지 않음-->
+				<c:if test="${map.pager.curPage < map.pager.totPage}">
+					<a href="#" onclick="list('${map.pager.totPage}')">[끝]</a>
+				</c:if>
+			</td>
+		</tr>
+		...
+		<script>
+			...
+			function list(page){
+				location.href = "${path}/board/list.do?curPage="+page;
+			}
+		</script>
+  	=========================================================================================================
+	- forEach 용법
+		> c:forEach var="개별데이터" begin="시작" end="끝" : 횟수가 고정적
+		> c:foreach var="개별데이터" items="집합데이터" : 횟수가 가변적
+	- hyper link로 연결되지 않고 이벤트 실행 : java script function 추가
 
 
 

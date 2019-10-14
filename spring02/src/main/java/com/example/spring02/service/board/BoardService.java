@@ -11,7 +11,7 @@ public interface BoardService {
 	public BoardDTO read(int bno) throws Exception;
 	public void update(BoardDTO dto) throws Exception;
 	public void delete(int bno) throws Exception;
-	public List<BoardDTO> listAll() throws Exception;
+	public List<BoardDTO> listAll(int start, int end) throws Exception;
 	public void increaseViewcnt() throws Exception;
 	public int countArticle() throws Exception;
 }
