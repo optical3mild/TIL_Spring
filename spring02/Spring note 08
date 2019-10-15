@@ -74,6 +74,7 @@ lec 14 21:00 ~
 
 >>lec14 47:00	
 11. 파일 업로드 (ajax방식)
+	- common.js : 업로드 관련 화면의 공통함수 - 리턴받은 정보로 파일 경로 생성(Link생성을 위해)
 
  1) 실습예제 : ajax방식으로 이미지 업로드
   1> menu.jsp : <a href="${path}/upload/uploadAjax">업로드(ajax)</a>

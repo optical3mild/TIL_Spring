@@ -23,10 +23,10 @@ public class BoardDAOImpl implements BoardDAO {
 
 	}
 
+	// 첨부파일 리스트
 	@Override
 	public List<String> getAttach(int bno) {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlSession.selectList("board.getAttach", bno);
 	}
 
 	@Override

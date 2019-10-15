@@ -22,11 +22,11 @@ public class BoardServiceImpl implements BoardService {
 		// TODO Auto-generated method stub
 
 	}
-
+	
+	//첨부파일 목록을 리턴
 	@Override
 	public List<String> getAttach(int bno) {
-		// TODO Auto-generated method stub
-		return null;
+		return boardDao.getAttach(bno);
 	}
 
 	// 하나의 메서드에 두가지 동작 --> 트랜젝션 처리 필요

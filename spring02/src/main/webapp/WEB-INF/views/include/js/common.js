@@ -12,8 +12,8 @@ function getFileInfo(fullName) {
 		imgsrc = "/spring02/upload/displayFile?fileName="+fullName;
 		fileLink = fullName.substr(14);
 		
-		var front = fullName.substr(14); // 14인덱스 ~ 끝
-		var end = fullName.substr(0,12); // 0 ~ 11
+		var front = fullName.substr(0,12); // 0 ~ 11
+		var end = fullName.substr(14); // 14인덱스 ~ 끝
 		
 		getLink = "/spring02/upload/displayFile?fileName="+front+end;
 	} else {	// 이미지 파일이 아닌경우

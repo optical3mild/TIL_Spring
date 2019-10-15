@@ -8,8 +8,10 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.model.board.dto.BoardDTO;
@@ -85,5 +87,13 @@ public class BoardController {
 		mav.setViewName("board/view");	//포워딩할 뷰의 이름
 		mav.addObject("dto", boardService.read(bno));	// 해당 게시물을 가져와 자료 저장
 		return mav; // views/board/view.jsp로 넘어가서 출력됨
+	}
+	
+	//첨부파일 목록을 리턴
+	// ArrayList를 json배열로 변환하여 리턴
+	@RequestMapping("getAttach/{bno}")
+	@ResponseBody // view가 아닌 데이터 자체를 리턴
+	public List<String> getAttach(@PathVariable int bno) {
+		return boardService.getAttach(bno);
 	}
 }

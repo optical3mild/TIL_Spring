@@ -41,7 +41,9 @@ public class UploadFileUtils {
 		} else {
 			uploadedFileName = makeIcon(uploadPath, savedPath, savedName);
 		}
+		logger.info("업로드 파일 이름: "+uploadedFileName);
 		return uploadedFileName;
+		
 	}
 	
 	// 아이콘 생성

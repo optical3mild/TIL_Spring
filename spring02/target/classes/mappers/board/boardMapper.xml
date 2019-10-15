@@ -50,6 +50,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			 from board b, member m
 			 where b.writer=m.userid and bno=#{bno}
 	</select>
+	
+	<!-- 첨부파일 목록 -->
+	<!-- parameterType : 전달 매개값 타입. 생략가능 -->
+	<!-- 결과값 필드는 하나, 문자열 타입 : String의 List값이 반환 (필드가 여러개인 경우, dto타입으로 리턴)-->
+	<select id="getAttach" parameterType="int" resultType="String">
+		select fullName from attach where bno=#{bno} order by regdate desc
+	</select>
 </mapper>
 
 

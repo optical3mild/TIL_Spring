@@ -55,6 +55,26 @@
 
 <script type="text/javascript">
 $(function(){
+	listAttach(); //첨부파일 목록 불러옴
+	
+	//첨부파일 삭제
+	// id가 uploadedList인 태그의 class가 file_del인 태그 클릭
+	$("#uploadedList").on("click", ".file_del", function(e){
+		var that = $(this); //클릭한 태그
+		$.ajax({
+			type : "post",
+			url : "${path}/upload/deleteFile",
+			data : {fileName : $(this).attr("data-src")},
+			dataType : "text",
+			success : function(result) {
+				if(result == "deleted")	{
+					//화면에서 태그 제거
+					that.parent("div").remove();
+				}
+			}
+		})
+	})
+	
 	//CKEDTOR적용
 	CKEDITOR.replace("content", {
 		//파일업로드를 처리할 주소
@@ -110,5 +130,33 @@ $(function(){
 		});
 	});
 });
+
+//첨부파일 리스트를 출력하는 함수
+function listAttach() {
+	$.ajax({
+		type: "post",
+		url: "${path}/board/getAttach/${dto.bno}",	// url로 게시물 번호를 전달
+		success: function(list){
+			console.log(list);
+			//list : json 
+			// $(선택자) : 선택자에는 태그/객체가 들어갈 수 있음.
+			//  - $("p") : 현재문서의 모든 p태그들
+			//	- $("#result") : id가 result인 태그 
+			//	- $(".info") : class가 info인 태그
+			//	- $(document) : document객체 ==> $(list) : list객체
+			// each(function(){}) : 반복문. 각각의 요소마다 function을 실행
+			$(list).each(function(){
+				console.log(getFileInfo(this));
+				// 첨부파일의 정보
+				var fileInfo = getFileInfo(this);
+				// this : 현재의 객체
+				var html = "<div><a href='" + fileInfo.getLink + "'>" + fileInfo.fileName + "</a>&nbsp;&nbsp;";
+				html += "<a href='#' class='file_del' data-src='"+ this +"'>[삭제]</a></div>";
+				// id가 uploadedList인 태그의 마지막에 추가
+				$("#uploadedList").append(html);
+			});
+		}
+	})
+}
 </script>
 </html>
