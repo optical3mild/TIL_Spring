@@ -5,6 +5,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,14 +15,15 @@ import com.example.spring02.model.board.dto.BoardDTO;
 
 @Service
 public class BoardServiceImpl implements BoardService {
+	private static final Logger logger = LoggerFactory.getLogger(BoardServiceImpl.class);
 	
 	@Inject
 	BoardDAO boardDao;
 	
+	//첨부파일 레코드 삭제
 	@Override
 	public void deleteFile(String fullName) {
-		// TODO Auto-generated method stub
-
+		boardDao.deleteFile(fullName);
 	}
 	
 	//첨부파일 목록을 리턴
@@ -52,10 +55,21 @@ public class BoardServiceImpl implements BoardService {
 		return boardDao.read(bno);
 	}
 
+	// 트랜젝션 처리
+	@Transactional
 	@Override
 	public void update(BoardDTO dto) throws Exception {
-		// TODO Auto-generated method stub
-
+		// board 테이블 수정
+		boardDao.update(dto);
+		
+		// attach 테이블 수정
+		String[] files = dto.getFiles();
+		logger.info("files : " + dto.getFiles());
+		if(files == null) return;
+		for(String name : files) {
+			logger.info("name : "+ name);
+			boardDao.updateAttach(name, dto.getBno());
+		}
 	}
 
 	@Override

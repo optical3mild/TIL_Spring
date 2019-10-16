@@ -54,7 +54,30 @@
 <script src="${path }/ckeditor/ckeditor.js"></script>
 
 <script type="text/javascript">
-$(function(){
+$(function(){ // 자동으로 실행되는 코드
+	// 목록버튼 : 게시판 목록 화면으로 연결
+	$("#btnList").click(function(){
+		location.href= "${path}/board/list.do";
+	});
+	
+	// 수정버튼
+	$("#btnUpdate").click(function() {
+	//첨부파일 정보를 폼에 추가
+		var str = "";
+		// #uploadedList .file : id가 uploadedList인 태그의 자식태그 중에서 class가 .file인 태그
+		$("#uploadedList .file").each(function(i){
+			str += "<input type='hidden' name='files["+i+"]' values='"+$(this).val()+"'>";
+		});
+		// 폼에 추가
+		console.log("str")
+		console.log(str)
+		$("#form1").append(str);
+		// form1의 액션 지정
+		document.form1.action="${path}/board/update.do";
+		// form1을 전송
+		document.form1.submit();
+	});
+	
 	listAttach(); //첨부파일 목록 불러옴
 	
 	//첨부파일 삭제
@@ -65,6 +88,7 @@ $(function(){
 			type : "post",
 			url : "${path}/upload/deleteFile",
 			data : {fileName : $(this).attr("data-src")},
+			// data : "fileName="+$(this).attr("data-src"),
 			dataType : "text",
 			success : function(result) {
 				if(result == "deleted")	{

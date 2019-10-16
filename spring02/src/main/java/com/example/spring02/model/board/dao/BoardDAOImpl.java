@@ -19,8 +19,7 @@ public class BoardDAOImpl implements BoardDAO {
 	
 	@Override
 	public void deleteFile(String fullName) {
-		// TODO Auto-generated method stub
-
+		sqlSession.delete("board.deleteFile", fullName);
 	}
 
 	// 첨부파일 리스트
@@ -35,10 +34,13 @@ public class BoardDAOImpl implements BoardDAO {
 
 	}
 
+	// 첨부파일 정보 수정
 	@Override
 	public void updateAttach(String fullName, int bno) {
-		// TODO Auto-generated method stub
-
+		Map<String, Object> map = new HashMap<>();
+		map.put("fullName", fullName);
+		map.put("bno", bno);
+		sqlSession.insert("board.updateAttach", map);
 	}
 
 	@Override
@@ -79,6 +81,13 @@ public class BoardDAOImpl implements BoardDAO {
 	@Override
 	public BoardDTO read(int bno) throws Exception {
 		return sqlSession.selectOne("board.read", bno);
+	}
+
+	//레코드 수정
+	@Override
+	public void update(BoardDTO dto) throws Exception {
+		sqlSession.update("board.update", dto);
+		
 	}
 
 }

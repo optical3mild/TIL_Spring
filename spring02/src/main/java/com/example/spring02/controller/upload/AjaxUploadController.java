@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import javax.annotation.Resource;
+import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spring02.service.board.BoardService;
 import com.example.spring02.util.MediaUtils;
 import com.example.spring02.util.UploadFileUtils;
 
@@ -27,6 +29,9 @@ import com.example.spring02.util.UploadFileUtils;
 public class AjaxUploadController {
 	//로깅을 위한 변수
 	private static final Logger logger = LoggerFactory.getLogger(AjaxUploadController.class);
+	
+	@Inject
+	BoardService boardService;
 	
 	//업로드 디렉토리 : servlet-context.xml에 설정되어 있음
 	//설정파일에서 값을 읽어와 변수에 대입하므로, 결과적으로 String uploadPath="e:/upload";와 동일.
@@ -120,6 +125,10 @@ public class AjaxUploadController {
 		}
 		// 원본파일 삭제(이미지이면 썸네일 삭제), replace("oldchar", "newchar")
 		new File(uploadPath + fileName.replace('/', File.separatorChar)).delete();
+		
+		//레코드 삭제
+		boardService.deleteFile(fileName);
+		
 		return new ResponseEntity<String>("deleted", HttpStatus.OK);
 	}
 	

@@ -57,6 +57,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="getAttach" parameterType="int" resultType="String">
 		select fullName from attach where bno=#{bno} order by regdate desc
 	</select>
+	
+	<!-- 첨부파일 레코드 삭제 -->
+	<delete id="deleteFile">
+		delete from attach where fullName = #{fullName}
+	</delete>
+	
+	<!-- 게시물 내용 수정 -->
+	<update id="update">
+		update board set title=#{title}, content=#{content} where bno=#{bno}
+	</update>
+	
+	<!-- 새로운 첨부파일 추가 -->
+	<insert id="updateAttach">
+		insert into attach(fullName, bno) values(#{fullName}, #{bno})
+	</insert>
 </mapper>
 
 

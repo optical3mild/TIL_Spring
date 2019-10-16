@@ -709,6 +709,10 @@ lec 16 ~
   		> RESTful한 url로 요청 : http://localhost/spring02/board/getAttach/5 --> @PathVariable
   		> 파일목록은 list(json배열)로 넘어옴
   		=====================================================================================================
+		$(function(){
+			listAttach();
+		})
+		
 		//첨부파일 리스트를 출력하는 함수
 		function listAttach() {
 			$.ajax({
@@ -769,8 +773,151 @@ lec 16 ~
 
 	- 파일 삭제 : 화면에 script추가
 		====================================================================================================
-			
+			//첨부파일 삭제
+			// id가 uploadedList인 태그의 class가 file_del인 태그 클릭
+			$("#uploadedList").on("click", ".file_del", function(e){
+				var that = $(this); //클릭한 태그
+				$.ajax({
+					type : "post",
+					url : "${path}/upload/deleteFile",
+					data : {fileName : $(this).attr("data-src")},
+					// data : "fileName="+$(this).attr("data-src"),
+					dataType : "text",
+					success : function(result) {
+						if(result == "deleted")	{
+							//화면에서 태그 제거
+							that.parent("div").remove();
+						}
+					}
+				})
+			})
 		====================================================================================================
+  		> controller : 기존의 AjaxUploadController.java 사용.
+  		> 로컬에 저장된 파일은 지워졌으나, db의 레코드는 삭제되지 않음
+  		
+  	- 파일 레코드 삭제 : 첨부파일 테이블의 레코드 삭제
+  		> AjaxUploadController.java : deleteFile수정
+  			================================================================================================
+			@Inject
+			BoardService boardService;
+			
+			// 이미지파일 --> 썸네일 삭제, 원본이미지 삭제
+			// 이미지파일이 아닌경우 --> 원본파일 삭제
+			@ResponseBody // 뷰가 아닌 데이터를 리턴
+			@RequestMapping(value="/upload/deleteFile", method=RequestMethod.POST)
+			public ResponseEntity<String> deleteFile(String fileName){
+				logger.info("fileName: " + fileName);
+				// 확장자 검사 - 확장자 문자열 추출
+				String formatName = fileName.substring(fileName.lastIndexOf(".") + 1); // .다음부터 문자열 절삭
+				// static class에서 해당 값을 가져옴 - 해당하는 값이 없는 경우 null이 저장되어 있음.
+				MediaType mType = MediaUtils.getMediaType(formatName);
+				if(mType != null) { // 이미지 파일이면 원본이미지 삭제
+					String front = fileName.substring(0,12);
+					String end = fileName.substring(14);
+					// File.separatorChar : 유닉스 / 윈도우즈 \
+					new File(uploadPath + (front+end).replace('/', File.separatorChar)).delete();
+				}
+				// 원본파일 삭제(이미지이면 썸네일 삭제), replace("oldchar", "newchar")
+				new File(uploadPath + fileName.replace('/', File.separatorChar)).delete();
+				
+				//레코드 삭제
+				boardService.deleteFile(fileName);
+				
+				return new ResponseEntity<String>("deleted", HttpStatus.OK);
+			}
+  			================================================================================================
+  			- boardService inject, 리턴 전 boardService.delete(fileName) 수행
+  		
+  		> BoardService : boardDAO.deleteFile(fullName);
+  		> BoardDAO : sqlSession.delete("board.deleteFile", fullName);
+  		> boardMapper.xml
+  			------------------------------------------------------------------------------------------------
+			<!-- 첨부파일 레코드 삭제 -->
+			<delete id="deleteFile">
+				delete from attach where fullName = #{fullName}
+			</delete>
+  			------------------------------------------------------------------------------------------------
+  		
+  		** 에러 메시지 =====================================================================================
+  		- Mapped Statements collection does not contain value for board.deleteFile
+  			 > board.deleteFile을 찾을 수 없다 = 수정 후 서버를 재시작 하지 않아 등록되지 않은경우.
+		====================================================================================================
+
+	- 목록 버튼 : view.jsp의 script 추가 (목록화면을 연결해주는 컨트롤러를 호출)
+	- 수정 버튼
+		> view.jsp : form안에 첨부파일 정보가 없으므로, 정보를 수집하여 넣어주는 작업 필요.
+			================================================================================================
+			// 수정버튼
+			$("#btnUpdate").click(function() {
+			//첨부파일 정보를 폼에 추가
+				var str = "";
+				// #uploadedList .file : id가 uploadedList인 태그의 자식태그 중에서 class가 .file인 태그
+				$("#uploadedList .file").each(function(i){
+					str += "<input type='hidden' name='files["+i+"]' values='"+$(this).val()+"'>";
+				});
+				// 폼에 추가
+				$("#form1").append(str);
+				// form1의 액션 지정
+				document.form1.action="${path}/board/update.do";
+				// form1을 전송
+				document.form1.submit();
+			});
+			================================================================================================
+			- 추가할 파일의 태그는 str로 구성되나 form1에 append(str)이 수행되어 전송전에 form1에 태그로 추가됨.
+				> 순서대로 files[i]형식의 name을 가지고 추가되어 전송 시 dto내 필드의 배열에 쌓임
+		
+		> BoardController
+			================================================================================================
+			//게시물 내용 수정
+			@RequestMapping("update.do")
+			public String update(BoardDTO dto) throws Exception {
+				if(dto != null) {
+					boardService.update(dto);
+				}
+				// 수정 완료 후 목록으로 이동
+				return "redirect:/board/list.do";
+				// 수정 후 해당글 화면으로 이동
+				//return "redirect:/board/view.do?bno="+dto.getBno();
+			}
+			================================================================================================
+>>			- 파일이 dto내 해당하는 필드에 배열로 쌓임
+				> name='files[i]' : 넘어오는 태그 이름이 필드 배열의 자료 한칸에 맞춰져 있음.
+
+		> service : update() - transaction 처리 @Transactional
+			- board table 수정
+			- attach table 수정
+		> DAO : update(), updateAttach()
+			- 게시물 수정 : sqlSession.update("board.update", dto);
+			- 첨부파일 수정 : updateAttach() ==> insert가 실행되어야 함.
+				> 파일을 추가 = insert
+				> 기존에 있던 파일 뒤에 파일 추가 = insert
+				> 기존의 파일 삭제 = delete ==> 따로 ajax를 이용하여 delete가 실행됨.
+				
+				
+		> mapper
+			-----------------------------------------------------------------------------------------------
+				<!-- 게시물 내용 수정 -->
+				<update id="update">
+					update board set title=#{title}, content=#{content}, where bno=#{bno}
+				</update>
+			-----------------------------------------------------------------------------------------------
+		
+	** 테이블 구성 =========================================================================================
+	- '1 : 다' 관계일 때 각 테이블을 따로 생성
+		> 게시판 board / 첨부파일 attach / 댓글 reply 로 나누어 구성
+			<example>
+				- 회원				- 회원주소
+				> kim				> 서울
+									> 인천
+									> 대구
+									> 강릉
+				
+				-고객				- 배송지
+				> kim				> 서울
+									> 회사
+									> 동생
+	========================================================================================================
+
   
  4) 댓글 목록, 쓰기
   

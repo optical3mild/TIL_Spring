@@ -6,6 +6,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +23,8 @@ import com.example.spring02.service.board.Pager;
 @Controller	//controller bean
 @RequestMapping("board/*")	//공통적인 url pattern
 public class BoardController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(BoardController.class);
 	
 	@Inject
 	BoardService boardService;
@@ -95,5 +99,17 @@ public class BoardController {
 	@ResponseBody // view가 아닌 데이터 자체를 리턴
 	public List<String> getAttach(@PathVariable int bno) {
 		return boardService.getAttach(bno);
+	}
+	
+	//게시물 내용 수정
+	@RequestMapping("update.do")
+	public String update(BoardDTO dto) throws Exception {
+		if(dto != null) {
+			boardService.update(dto); //레코드 수정
+		}
+		// 수정 완료 후 목록으로 이동
+		return "redirect:/board/list.do";
+		// 수정 후 해당글 화면으로 이동
+		//return "redirect:/board/view.do?bno="+dto.getBno();
 	}
 }
