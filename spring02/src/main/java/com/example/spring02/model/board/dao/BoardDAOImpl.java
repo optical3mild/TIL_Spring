@@ -38,8 +38,8 @@ public class BoardDAOImpl implements BoardDAO {
 	@Override
 	public void updateAttach(String fullName, int bno) {
 		Map<String, Object> map = new HashMap<>();
-		map.put("fullName", fullName);
-		map.put("bno", bno);
+		map.put("fullName", fullName); //첨부파일 이름
+		map.put("bno", bno); //게시물 번호
 		sqlSession.insert("board.updateAttach", map);
 	}
 

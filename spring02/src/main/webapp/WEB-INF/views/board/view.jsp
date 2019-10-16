@@ -46,6 +46,19 @@
 		<button type="button" id="btnList">목록</button>
 	</div>
 </form>
+
+<!-- 댓글 작성 -->
+<div style="width:700px; text-align: center;">
+	<c:if test="${sessionScope.userid != null}">
+		<textarea rows="5" cols="60" id="replytext" placeholder="댓글을 작성하세요"></textarea>
+		<br>
+		<button type="button" id="btnReply">댓글쓰기</button>
+	</c:if>
+</div>
+
+<!-- 댓글 목록 -->
+<div id="listReply"></div>
+
 </body>
 <!-- 페이지에서 사용할 javascript 메서드 -->
 <script src="${path }/include/js/common.js"></script>
@@ -55,6 +68,23 @@
 
 <script type="text/javascript">
 $(function(){ // 자동으로 실행되는 코드
+	
+	//댓글 쓰기
+	$("#btnReply").click(function(){
+		var replytext = $("#replytext").val(); //댓글 내용
+		var bno = "${dto.bno}"; //게시물 번호
+		var param = {"replytext" : replytext, "bno" : bno};
+		// var param = "replytext="+replytext+"&bno="+bno;
+		$.ajax({
+			type : "post",
+			url : "${path}/reply/insert.do",
+			data : param,
+			success : function(){
+				alert("댓글이 등록되었습니다.");
+			}
+		});
+	});
+	
 	// 목록버튼 : 게시판 목록 화면으로 연결
 	$("#btnList").click(function(){
 		location.href= "${path}/board/list.do";
@@ -66,7 +96,7 @@ $(function(){ // 자동으로 실행되는 코드
 		var str = "";
 		// #uploadedList .file : id가 uploadedList인 태그의 자식태그 중에서 class가 .file인 태그
 		$("#uploadedList .file").each(function(i){
-			str += "<input type='hidden' name='files["+i+"]' values='"+$(this).val()+"'>";
+			str += "<input type='hidden' name='files["+i+"]' value='"+$(this).val()+"'>";
 		});
 		// 폼에 추가
 		console.log("str")
@@ -175,7 +205,12 @@ function listAttach() {
 				var fileInfo = getFileInfo(this);
 				// this : 현재의 객체
 				var html = "<div><a href='" + fileInfo.getLink + "'>" + fileInfo.fileName + "</a>&nbsp;&nbsp;";
-				html += "<a href='#' class='file_del' data-src='"+ this +"'>[삭제]</a></div>";
+				
+				// 접속한 유저와 글 작성자가 일치하는 경우에 화면에 나타냄
+				<c:if test ="${sessionScope.userid == dto.writer}">
+					html += "<a href='#' class='file_del' data-src='"+ this +"'>[삭제]</a></div>";
+				</c:if>
+				
 				// id가 uploadedList인 태그의 마지막에 추가
 				$("#uploadedList").append(html);
 			});
