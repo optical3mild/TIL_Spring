@@ -16,10 +16,10 @@ public class ReplyServiceImpl implements ReplyService {
 	@Inject
 	ReplyDAO replyDao;
 	
+	// 댓글 목록
 	@Override
 	public List<ReplyDTO> list(int bno) {
-		// TODO Auto-generated method stub
-		return null;
+		return replyDao.list(bno);
 	}
 
 	@Override

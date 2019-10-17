@@ -1,10 +1,13 @@
 package com.example.spring02.controller.board;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.model.board.dto.ReplyDTO;
 import com.example.spring02.service.board.ReplyService;
@@ -25,5 +28,19 @@ public class ReplyController {
 		// 댓글이 테이블에 저장됨
 		replyService.create(dto);
 		// jsp페이지로 가거나 데이터를 리턴하지 않음 
+	}
+	
+	@RequestMapping("list.do")
+	public ModelAndView list(int bno, ModelAndView mav) {
+		List<ReplyDTO> list = replyService.list(bno); //댓글 목록
+		mav.setViewName("board/reply_list"); //뷰의 이름
+		mav.addObject("list", list); //뷰에 전달될 데이터 저장
+		return mav; //뷰로 이동
+	}
+	
+	// 댓글 목록을 ArrayList로 리턴
+	@RequestMapping("list_json.do")
+	public List<ReplyDTO> list_json(int bno) {
+		return replyService.list(bno);
 	}
 }

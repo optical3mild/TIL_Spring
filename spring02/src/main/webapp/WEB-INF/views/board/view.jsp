@@ -69,6 +69,8 @@
 <script type="text/javascript">
 $(function(){ // 자동으로 실행되는 코드
 	
+	listReply2(); // 댓글 목록 출력
+	
 	//댓글 쓰기
 	$("#btnReply").click(function(){
 		var replytext = $("#replytext").val(); //댓글 내용
@@ -81,6 +83,7 @@ $(function(){ // 자동으로 실행되는 코드
 			data : param,
 			success : function(){
 				alert("댓글이 등록되었습니다.");
+				listReply2(); // 댓글 목록 출력
 			}
 		});
 	});
@@ -217,5 +220,71 @@ function listAttach() {
 		}
 	})
 }
+
+//댓글 목록 출력함수 1 : responseText로 댓글 화면부분 전체 코드를 받아와 현재화면에 삽입
+function listReply() {
+	$.ajax({
+		type: "get",
+		url: "${path}/reply/list.do?bno=${dto.bno}",
+		success: function(result){
+			$("#listReply").html(result);
+			console.log(result);
+		}
+	})
+}
+
+//댓글 목록 출력함수 2 : ArrayList를 받아 화면에서 코드로 구성
+function listReply2(){
+	$.ajax({
+		type: "get",
+		contentType: "application/json",
+		url: "${path}/reply/list_json.do?bno=${dto.bno}",
+		success: function(result) {
+			console.log(result);
+			var output = "<table>";
+			for(var i in result) {
+				var repl = result[i].replytext;
+				
+				repl = repl.replace(/</gi,"&lt;");			//태그문자 처리
+				repl = repl.replace(/>/gi,"&gt;");
+				repl = repl.replace(/  /gi,"&nbsp;&nbsp;");	//공백처리
+				repl = repl.replace(/\n/gi,"<br>");			//줄바꿈 처리
+
+				output += "<tr><td>" + result[i].name;
+				
+				//날짜값 변환
+				date = changeDate(result[i].regdate);
+				
+				output += "(" + date + ")";
+				output += "<br>" + repl + "</td></tr>";
+			}
+			output +="</table>";
+			$("#listReply").html(output);
+		}
+	});
+}
+
+//타임 스탬프값(숫자형)을 문자열로 변환
+function changeDate(date){
+	date = new Date(parseInt(date));
+	year =  date.getFullYear();
+	
+	month = date.getMonth();
+	if(month < 9) {
+		month += 1;
+		month = "0" + month;
+	} else {
+		month += 1;
+	}
+	
+	day = date.getDate();
+	hour = date.getHours();
+	minute = date.getMinutes();
+	second = date.getSeconds();
+	strDate = year + "-" + month + "-" + day + "-" + hour + ":" + minute + ":" + second;
+	
+	return strDate;
+}
+
 </script>
 </html>

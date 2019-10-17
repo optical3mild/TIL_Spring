@@ -1040,7 +1040,237 @@ lec 18 종료
 lec 19~
   
   4> 댓글 목록 출력
-  
+  	- ajax방식으로 목록 갱신
+  		> view.jsp --> ReplyController --> reply_list.jsp : responseText(응답텍스트)
+  		> view.jsp --> ReplyController : ArrayList형식으로 리턴(Json)
+  		
+  	- view.jsp
+  		------------------------------------------------------------------------------------------------------
+		<script>
+		$(function(){ // 자동으로 실행되는 코드
+		
+			listReply(); // 댓글 목록 출력
+	
+			//댓글 쓰기
+			$("#btnReply").click(function(){
+				var replytext = $("#replytext").val(); //댓글 내용
+				var bno = "${dto.bno}"; //게시물 번호
+				var param = {"replytext" : replytext, "bno" : bno};
+				// var param = "replytext="+replytext+"&bno="+bno;
+				$.ajax({
+					type : "post",
+					url : "${path}/reply/insert.do",
+					data : param,
+					success : function(){
+						alert("댓글이 등록되었습니다.");
+		>>				listReply(); // 댓글 목록 출력
+					}
+				});
+			});
+		...
+		});
+		...
+		
+		//댓글 목록 출력함수 1 : responseText로 댓글 화면부분 전체 코드를 받아와 현재화면에 삽입
+		function listReply() {
+			$.ajax({
+				type: "get",
+				url: "${path}/reply/list.do?bno=${dto.bno}",
+				success: function(result){
+					$("#listReply").html(result);
+					console.log(result);
+				}
+			})
+		}
+		
+		</script>
+  		------------------------------------------------------------------------------------------------------
+  		> 처음과 댓글쓰기 다음 listReply() 호출하여 <div id="listReply"></div>에 출력
+  		
+  	- 1. 응답텍스트 리턴
+  		> 데이터와 화면을 구성하여 해당화면의 html코드 전체를 텍스트로 리턴 = jsp로 출력되는 결과 전체를 리턴
+  		> jsp를 따로 생성하여야 함 / jsp페이지를 만들어 출력하므로 화면을 구성하기 편리
+  		
+  		> controller : list.do
+  			--------------------------------------------------------------------------------------------------
+			@RequestMapping("list.do")
+			public ModelAndView list(int bno, ModelAndView mav) {
+				List<ReplyDTO> list = replyService.list(bno); //댓글 목록
+				mav.setViewName("board/reply_list"); //뷰의 이름
+				mav.addObject("list", list); //뷰에 전달될 데이터 저장
+				return mav; //뷰로 이동
+			}
+  			--------------------------------------------------------------------------------------------------
+ >> 		- mav에 저장된 뷰를 데이터와 함께 리턴 = 화면을 구성하여 해당화면의 html코드 전체를 텍스트로 리턴한다.
+  		
+  		> service, DAO : list(int bno);
+  		> mapper
+  			--------------------------------------------------------------------------------------------------
+			<!-- 댓글목록 -->
+			<select id="listReply" resultType="com.example.spring02.model.reply.dto.ReplyDTO">
+				select rno, bno, replyer, regdate, updatedate, name, replytext
+				 from reply r, member m
+				 where r.replyer = m.userid and bno=#{bno}
+				 order by rno 
+			</select>
+  			--------------------------------------------------------------------------------------------------
+  		
+  		> 출력화면 : views/board/reply_list.jsp
+  			==================================================================================================
+			...
+			<body>
+			<!-- 2. 줄바꿈 처리 관련 값 설정 : jstl의 안에서는 '\n', '\\n'사용 불가-->
+			<% pageContext.setAttribute("newLineChar", "\n"); %>
+			<table style="width:700px">
+				<c:forEach var="row" items="${list }">
+				
+					<!-- 3. 태그 문자 처리(무력화) : 2.줄바꿈 처리에서 <br>을 사용하므로, 그 전에 처리. -->
+					<c:set var="str" value="${fn:replace(row.replytext, '<','&lt;') }" />
+					<c:set var="str" value="${fn:replace(str, '<','&gt;') }" />
+			
+					<!-- fn사용을 위해 태그라이브러리 fn(jstl/functions)추가 필요 : header.jsp에 추가-->
+					<!-- 1. 공백처리 : fn:replace(원본문자열 객체, 찾을문자열 형태, 바꿀 문자열) -->
+					<c:set var="str" value="${fn:replace(str,'  ','&nbsp;&nbsp;')}" />
+			
+					<!-- 2. 줄바꿈 처리 : jstl안에서 '\n'사용불가로 미리 선언한 변수값을 가져옴 -->
+					<c:set var="str" value="${fn:replace(str, newLineChar,'<br>')}" />
+					<tr>
+						<td>
+							${row.name }
+							(<fmt:formatDate value="${row.regdate }" pattern="yyyy-MM-dd a HH:mm:ss" />)<br>
+							${str} <!-- jstl로 변환한 내용을 출력 -->
+						</td>
+					</tr>
+				</c:forEach>
+			</table>
+			</body>
+  			==================================================================================================
+  			- 컨트롤러에서 화면을 responseText로 리턴, 게시글 하단에 화면이 추가되어 출력됨.
+  			- 댓글 등록 시 작성글의 줄바꿈, 공백생성, 태그사용 처리 필요
+  			- fn사용을 위해 태그라이브러리 fn(jstl/functions)추가 필요 : header.jsp에 추가
+  				> EL(Expression Language, 표현언어)
+  				> JSTL(Jsp Standard Tag Library, 표준 태그 라이브러리)
+  				
+	- 2. ArrayList형식으로 리턴
+		> 컨트롤러에서 뷰로 넘어가지 않고 그대로 데이터를 리턴
+		> 뷰를 새로 구성할 필요는 없으나, 화면에서 데이터를 가공하여 출력(추가 코딩필요)
+		
+		> view.jsp
+			==================================================================================================
+			<script>
+			$(function(){
+				listReply2();
+				
+				//댓글 쓰기
+				$("#btnReply").click(function(){
+					...
+					$.ajax({
+						...
+							listReply2(); // 댓글 목록 출력
+						}
+					});
+				});
+			});
+			
+			//댓글 목록 출력함수 2 : ArrayList를 받아 화면에서 코드로 구성
+			function listReply2(){
+				$.ajax({
+					type: "get",
+					contentType: "application/json",
+					url: "${path}/reply/list_json.do?bno=${dto.bno}",
+					success: function(result) {
+						var output = "<table>";
+						for(var i in result) {
+							var repl = result[i].replytext;
+							output += "<tr><td>" + result[i].name;
+							output += "(" +result[i].regdate + ")";
+							output += "<br>" + repl + "</td></tr>";
+						}
+						output +="</table>";
+						$("#listReply").html(output);
+					}
+				});
+			}
+			</script>
+			==================================================================================================
+
+		> controller : list_json.do
+			- 컨트롤러에서 ArrayList를 바로 리턴 --> js는 ArrayList형식이 없고, json객체배열로 받음
+				: 추가한 라이브러리 jackson-databind가 데이터 형식을 변환 처리
+
+		> 화면에서 표시되는 날짜값 형식변경, 공백문자, 줄바꿈, 태그무력화 : view.jsp에 관련 함수 작성
+			==================================================================================================
+			//댓글 목록 출력함수 2 : ArrayList를 받아 화면에서 코드로 구성
+			function listReply2(){
+				$.ajax({
+					type: "get",
+					contentType: "application/json",
+					url: "${path}/reply/list_json.do?bno=${dto.bno}",
+					success: function(result) {
+						console.log(result);
+						var output = "<table>";
+						for(var i in result) {
+							var repl = result[i].replytext;
+							
+				>>			repl = repl.replace(/</gi,"&lt;");			//태그문자 처리
+				>>			repl = repl.replace(/>/gi,"&gt;");
+				>>			repl = repl.replace(/  /gi,"&nbsp;&nbsp;");	//공백처리
+				>>			repl = repl.replace(/\n/gi,"<br>");			//줄바꿈 처리
+			
+							output += "<tr><td>" + result[i].name;
+							
+				>>			//날짜값 변환
+				>>			date = changeDate(result[i].regdate);
+							
+							output += "(" + date + ")";
+							output += "<br>" + repl + "</td></tr>";
+						}
+						output +="</table>";
+						$("#listReply").html(output);
+					}
+				});
+			}
+			
+			//타임 스탬프값(숫자형)을 문자열로 변환
+			function changeDate(date){
+				date = new Date(parseInt(date));
+				year =  date.getFullYear();
+				
+				month = date.getMonth();
+				if(month < 9) {
+					month += 1;
+					month = "0" + month;
+				} else {
+					month += 1;
+				}
+				
+				day = date.getDate();
+				hour = date.getHours();
+				minute = date.getMinutes();
+				second = date.getSeconds();
+				strDate = year + "-" + month + "-" + day + "-" + hour + ":" + minute + ":" + second;
+				
+				return strDate;
+			}
+			==================================================================================================
+			> getMonth() : 달의 값은 인덱스 값으로, 1월 = 0으로 출력됨
+			> 월의 인덱스를 받아 두자리수 처리와 인덱스를 해당월로 출력되도록 처리 필요.
+			> / /gi : 정규표현식, Regular Expression. --> / /사이에 규칙 or 문자 처리
+			
+	** 정규표현식 ============================================================================================
+	/ /gi : 정규표현식, Regular Expression
+	
+	/규칙/
+	/규칙/gi : g=global(전역검색. 여러번 나오는 경우 포함), i=대소문자 무시 --> 해당규칙을 모두 찾아라
+	===========================================================================================================
+>>lec 19 51:00
+	
+	- 3. 글 목록 화면에서 댓글갯수 표시
+	
+
+
+
+
   
  5) 게시물 수정, 삭제
   

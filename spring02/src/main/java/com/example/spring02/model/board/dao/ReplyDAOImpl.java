@@ -17,10 +17,10 @@ public class ReplyDAOImpl implements ReplyDAO {
 	@Inject
 	SqlSession sqlSession;
 	
+	//댓글 목록
 	@Override
 	public List<ReplyDTO> list(int bno) {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlSession.selectList("reply.listReply", bno);
 	}
 
 	@Override
