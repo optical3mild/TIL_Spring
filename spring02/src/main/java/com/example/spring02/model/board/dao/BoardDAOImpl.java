@@ -57,9 +57,12 @@ public class BoardDAOImpl implements BoardDAO {
 
 	// 게시물 목록 리턴
 	@Override
-	public List<BoardDTO> listAll(int start, int end) throws Exception {
+//	public List<BoardDTO> listAll(int start, int end) throws Exception {
+	public List<BoardDTO> listAll(String search_option, String keyword, int start, int end) throws Exception {
 		// Map<key의 자료형, value의 자료형>
 		Map<String, Object> map = new HashMap<>();
+		map.put("search_option", search_option);
+		map.put("keyword", "%"+keyword+"%");
 		map.put("start", start);
 		map.put("end", end);
 		// mapper에는 2개 이상의 값을 전달 할 수 없음(dto또는 map사용)
@@ -74,8 +77,15 @@ public class BoardDAOImpl implements BoardDAO {
 
 	//레코드 총 갯수
 	@Override
-	public int countArticle() throws Exception {
-		return sqlSession.selectOne("board.countArticle");
+//	public int countArticle() throws Exception {
+	public int countArticle(String search_option, String keyword) throws Exception {
+//		return sqlSession.selectOne("board.countArticle");
+		
+		// 조건검색
+		Map<String, String> map = new HashMap<>();
+		map.put("search_option", search_option);
+		map.put("keyword", "%"+keyword+"%");
+		return sqlSession.selectOne("board.countArticle", map);
 	}
 
 	//레코드 조회

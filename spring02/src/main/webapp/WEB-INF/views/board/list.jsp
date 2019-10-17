@@ -12,6 +12,19 @@
 <!-- spring02 project menu -->
 <%@ include file="../include/menu.jsp" %>
 <h2>게시판</h2>
+<!-- 검색폼 -->
+<form name="form1" method="post" action="${path }/board/list.do">
+	<!-- 컨트롤러에서 받은 검색조건 값에 따라 option선택 -->
+	<select name="search_option">
+		<option value="name" <c:if test="${map.search_option == 'name' }">selected</c:if> >이름</option>
+		<option value="title" <c:if test="${map.search_option == 'title' }">selected</c:if> >제목</option>
+		<option value="content" <c:if test="${map.search_option == 'content' }">selected</c:if> >내용</option>
+		<option value="all" <c:if test="${map.search_option == 'all' }">selected</c:if> >이름+제목+내용</option>
+	</select>
+	<!-- 컨트롤러에서 받은 키워드 값을 입력 -->
+	<input name="keyword" value="${map.keyword }">
+	<input type="submit" value="조회">
+</form>
 
 <!-- 세션을 확인하여 버튼을 숨기거나 보여줌 -->
 <%-- <c:if test="${sessionScope.userid != null}"> --%>
@@ -91,7 +104,9 @@ $(function(){
 	})
 })
 function list(page){
-	location.href = "${path}/board/list.do?curPage="+page;
+	//location.href = "${path}/board/list.do?curPage="+page;
+	location.href = "${path}/board/list.do?search_option=${map.search_option}"
+						+"&keyword=${map.keyword}&curPage="+page;
 }
 </script>
 </html>

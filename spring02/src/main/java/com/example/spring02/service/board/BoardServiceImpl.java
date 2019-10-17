@@ -85,8 +85,9 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	@Override
-	public List<BoardDTO> listAll(int start, int end) throws Exception {
-		return boardDao.listAll(start, end);
+//	public List<BoardDTO> listAll(int start, int end) throws Exception {
+	public List<BoardDTO> listAll(String search_option, String keyword, int start, int end) throws Exception {
+		return boardDao.listAll(search_option, keyword, start, end);
 	}
 
 	//조회수 증가 처리
@@ -110,8 +111,10 @@ public class BoardServiceImpl implements BoardService {
 
 	//레코드 총 갯수
 	@Override
-	public int countArticle() throws Exception {
-		return boardDao.countArticle();
+//	public int countArticle() throws Exception {
+	public int countArticle(String search_option, String keyword) throws Exception {
+//		return boardDao.countArticle();
+		return boardDao.countArticle(search_option, keyword);
 	}
 
 }

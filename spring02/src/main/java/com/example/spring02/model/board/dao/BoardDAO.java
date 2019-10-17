@@ -14,9 +14,12 @@ public interface BoardDAO {
 	public void create(BoardDTO dto) throws Exception;	//글쓰기
 	public void update(BoardDTO dto) throws Exception;	//글수정
 	public void delete(int bno) throws Exception;		//글삭제
-	public List<BoardDTO> listAll(int start, int end) throws Exception;	//목록
+//	public List<BoardDTO> listAll(int start, int end) throws Exception;	//목록
+	//조건에 따른 목록
+	public List<BoardDTO> listAll(String search_option, String keyword, int start, int end) throws Exception;
 	public void increateViewcnt(int bno) throws Exception;	//조회수 증가처리
-	public int countArticle() throws Exception;			//레코드 갯수 계산
+//	public int countArticle() throws Exception;			//레코드 갯수 계산
+	public int countArticle(String search_option, String keyword) throws Exception;	//조건에 따른 레코드 갯수 계산
 	
 	public BoardDTO read(int bno) throws Exception;		//레코드 조회
 }

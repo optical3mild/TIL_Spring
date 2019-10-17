@@ -30,15 +30,25 @@ public class BoardController {
 	BoardService boardService;
 	
 	@RequestMapping("list.do")	// 세부적인 url pattern
-	public ModelAndView list(@RequestParam(defaultValue="1") int curPage) throws Exception {
+	public ModelAndView list(
+			@RequestParam(defaultValue="name") String search_option,	//검색 옵션
+			@RequestParam(defaultValue="") String keyword,				//검색 키워드
+			@RequestParam(defaultValue="1") int curPage					//요청 페이지번호
+		) throws Exception {
+		logger.info("option: " + search_option);
+		logger.info("keyword: " + keyword);
+		
 		//레코드 갯수 계산
-		int count = boardService.countArticle();
+		//int count = boardService.countArticle(); //전체 레코드 수
+		int count = boardService.countArticle(search_option, keyword); //조건에 따른 레코드 수
+		
 		//페이지 관련 설정
 		Pager pager = new Pager(count, curPage);
 		int start =  pager.getPageBegin();
 		int end = pager.getPageEnd();
 		
-		List<BoardDTO> list = boardService.listAll(start, end);	// 게시물 목록
+		//List<BoardDTO> list = boardService.listAll(start, end);	// 게시물 목록
+		List<BoardDTO> list = boardService.listAll(search_option, keyword, start, end);	// 조건에 따른 게시물 목록
 		ModelAndView mav = new ModelAndView();
 		HashMap<String, Object> map = new HashMap<>();
 		
@@ -46,6 +56,10 @@ public class BoardController {
 		map.put("count", count);	// 게시물 총 갯수
 		
 		map.put("pager", pager);	// 페이지 네비게이션을 위한 변수
+		
+		// 페이지 이동 시 검색결과가 초기화되지 않도록 값을 전달
+		map.put("search_option", search_option);
+		map.put("keyword", keyword);
 		
 		mav.setViewName("board/list"); // 포워딩할 view의 이름
 		mav.addObject("map", map);	//ModelAndView에 map을 저장
