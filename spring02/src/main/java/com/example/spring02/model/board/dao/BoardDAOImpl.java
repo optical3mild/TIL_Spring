@@ -48,10 +48,11 @@ public class BoardDAOImpl implements BoardDAO {
 		sqlSession.insert("board.insert", dto);
 	}
 
+	//게시물 레코드 삭제 --> 숨김처리(필드값 업데이트)
 	@Override
 	public void delete(int bno) throws Exception {
-		// TODO Auto-generated method stub
-
+		//sqlSession.delete("board.delete", bno);
+		sqlSession.update("board.delete_record", bno);
 	}
 
 	// 게시물 목록 리턴

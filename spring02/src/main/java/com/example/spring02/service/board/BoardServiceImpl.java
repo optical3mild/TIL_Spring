@@ -72,10 +72,16 @@ public class BoardServiceImpl implements BoardService {
 		}
 	}
 
+	@Transactional
 	@Override
 	public void delete(int bno) throws Exception {
-		// TODO Auto-generated method stub
-
+		// 1. 전부 삭제하는 경우 : 모든 테이블의 레코드와 해당 파일을 삭제
+		//	- reply레코드 삭제
+		//	- attach레코드 삭제
+		//  - 첨부파일 삭제
+		//	- board레코드 삭제
+		// 2. 해당 게시물을 숨김처리 : 레코드에 필드를 추가하고 삭제요청 시 레코드값을 업데이트 한다.
+		boardDao.delete(bno);
 	}
 
 	@Override

@@ -112,4 +112,11 @@ public class BoardController {
 		// 수정 후 해당글 화면으로 이동
 		//return "redirect:/board/view.do?bno="+dto.getBno();
 	}
+	
+	//게시물 삭제
+	@RequestMapping("delete.do")
+	public String delete(int bno) throws Exception {
+		boardService.delete(bno); //삭제처리
+		return "redirect:/board/list.do";	//목록으로 이동
+	}
 }

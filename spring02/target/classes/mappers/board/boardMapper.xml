@@ -11,9 +11,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			from (
 				SELECT @rownum:=@rownum+1 AS rn, A.*
 					from (
-						select bno, title, writer, name, regdate, viewcnt 
+						select bno, title, writer, name, regdate, viewcnt,
+							(select count(*) from reply where bno = b.bno) cnt, 
+							 `show`
 					 	from board b, member m
 					 	where b.writer=m.userid
+					 	 and `show`='Y'
 					 	order by bno desc
 				 	) A, (SELECT @rownum:=0) N
 		) R WHERE R.rn BETWEEN #{start} AND #{end}
@@ -72,6 +75,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<insert id="updateAttach">
 		insert into attach(fullName, bno) values(#{fullName}, #{bno})
 	</insert>
+	
+	<!-- 게시물 레코드 삭제 -->
+	<delete id="delete">
+		delete from board where bno=#{bno}
+	</delete>
+	
+	<!-- 게시물 숨김처리(삭제대신 사용) -->
+	<update id="delete_record">
+		update board set `show`='N' where bno=#{bno}
+	</update>
 </mapper>
 
 

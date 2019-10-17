@@ -69,6 +69,14 @@
 <script type="text/javascript">
 $(function(){ // 자동으로 실행되는 코드
 	
+	//삭제버튼
+	$("#btnDelete").click(function(){
+		if(confirm("삭제하시겠습니까?")) {
+			document.form1.action="${path}/board/delete.do";
+			document.form1.submit();
+		}
+	});
+	
 	listReply2(); // 댓글 목록 출력
 	
 	//댓글 쓰기

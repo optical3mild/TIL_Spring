@@ -33,6 +33,10 @@ ${map.count }개의 게시물이 있습니다<br>
 			<td>${row.bno }</td>
 			<td>
 				<a href="${path}/board/view.do?bno=${row.bno}">${row.title }</a>
+				<!-- 댓글 수 출력 -->
+				<c:if test="${row.cnt > 0}">
+					<span style="color:red;"> (${row.cnt })</span>
+				</c:if>
 			</td>
 			<td>${row.name }</td>
 			<td>

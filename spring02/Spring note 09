@@ -1266,14 +1266,114 @@ lec 19~
 >>lec 19 51:00
 	
 	- 3. 글 목록 화면에서 댓글갯수 표시
-	
+		> boardMapper.xml : listAll에 서브쿼리 추가
+		-------------------------------------------------------------------------------------------------------
+		<!-- 레코드 목록조회 -->
+		<select id="listAll" resultType = "com.example.spring02.model.board.dto.BoardDTO">
+			SELECT R.*
+				from (
+					SELECT @rownum:=@rownum+1 AS rn, A.*
+						from (
+							select bno, title, writer, name, regdate, viewcnt,
+		>>						(select count(*) from reply where bno = b.bno) cnt
+						 	from board b, member m
+						 	where b.writer=m.userid
+						 	order by bno desc
+					 	) A, (SELECT @rownum:=0) N
+			) R WHERE R.rn BETWEEN #{start} AND #{end}
+		</select>
 
+		-------------------------------------------------------------------------------------------------------
+			- (select count(*) from reply where bno = b.bno) cnt
+				> cnt : alias. => 추가되는 컬럼의 이름
+				> resultType에 기재된 DTO에 동일 이름의 필드가 있는지 확인필요.(값의 전달을 위해)
+		
+		> board/list.jsp 수정 : 댓글이 있는경우, cnt값 출력
+			---------------------------------------------------------------------------------------------------
+			...
+			<td>
+				<a href="${path}/board/view.do?bno=${row.bno}">${row.title }</a>
+				<!-- 댓글 수 출력 -->
+	>>			<c:if test="${row.cnt > 0}">
+	>>				<span style="color:red;"> (${row.cnt })</span>
+	>>			</c:if>
+			</td>
+			...
+			---------------------------------------------------------------------------------------------------
 
-
-
-  
+>>lec 19 57:40 
  5) 게시물 수정, 삭제
-  
+  1> 게시물 삭제
+  	- 게시글, 댓글, 첨부파일의 레코드와 첨부파일 모두 삭제 : 게시물이 있는경우 알림...
+  	- 테이블이 외래키로 연결되어 있으므로, 댓글/첨부파일이 있는 게시물의 레코드를 삭제하면 sql오류 발생(500)
+  		> 데이터 무결성 제약조건 에러발생
+  	
+  	- view.jsp : 삭제버튼 script - confirm()사용, delete.do로 요청
+  	- BoardController : delete.do
+  	- BoardService : delete()
+  		> 트랜젝션 처리 : reply, attach, board레코드, 첨부파일을 모두 삭제
+  		
+  	- DAO : 각 table의 레코드를 삭제
+  	- mapper
+  		> boardMapper.xml
+  			-------------------------------------------------------------------------------------------------
+			<!-- 게시물 레코드 삭제 -->
+			<delete id="delete">
+				delete from board where bno=#{bno}
+			</delete>
+  			-------------------------------------------------------------------------------------------------
+
+  2> 게시물을 삭제하지 않고 필드값을 변경하여 숨김처리 (데이터 보존)
+  	- 댓글, 첨부파일 등의 정보를 지우기가 곤란하고, 복원등이 필요해질 경우를 대비하여 데이터를 보존한다.
+  	- board table 수정 : 필드 추가
+  		> ALTER TABLE `board` ADD `SHOW` CHAR(1) NOT NULL DEFAULT 'Y' 
+>>  		(**mysql에서 필드와 테이블 이름에 back quote가 없으면 오류발생. show라는 예약어가 있음)
+  	- boardMapper.xml 수정 : listAll수정, update태그 추가
+  		-----------------------------------------------------------------------------------------------------
+			<!-- 레코드 목록조회 -->
+			<select id="listAll" resultType = "com.example.spring02.model.board.dto.BoardDTO">
+				SELECT R.*
+					from (
+						SELECT @rownum:=@rownum+1 AS rn, A.*
+							from (
+								select bno, title, writer, name, regdate, viewcnt,
+									(select count(*) from reply where bno = b.bno) cnt, 
+			>>						 `show`
+							 	from board b, member m
+							 	where b.writer=m.userid
+			>>				 	 and `show`='Y'
+							 	order by bno desc
+						 	) A, (SELECT @rownum:=0) N
+				) R WHERE R.rn BETWEEN #{start} AND #{end}
+			</select>
+			
+			...
+			
+			<!-- 게시물 숨김처리(삭제대신 사용) -->
+			<update id="delete_record">
+				update board set `show`='N' where bno=#{bno}
+			</update>
+  		-----------------------------------------------------------------------------------------------------
+		> show필드의 값이 Y인 경우에만 목록으로 출력 : show필드 추가, 조건절에 and로 `show`='Y' 추가
+		> show필드 값을 'N'으로 바꾸는 update태그 쿼리 추가(*delete태그에 쿼리를 작성하여도 쿼리대로 동작)
+		> show는 예약어가 존재 --> back quote표시 필수
+		
+	- boardDAO : delete()수정
+		-----------------------------------------------------------------------------------------------------
+		//게시물 레코드 삭제 --> 숨김처리(필드값 업데이트)
+		@Override
+		public void delete(int bno) throws Exception {
+			//sqlSession.delete("board.delete", bno);
+			sqlSession.update("board.delete_record", bno);
+		}
+		-----------------------------------------------------------------------------------------------------
+		
+	** SQL --------------------------------------------------------------------------------------------------
+	- mysql에서 예약어가 존재 : 필드이름을 동일하게 사용하여야 할 경우 back quote로 표시할 것
+	- mybatis의 경우 <select>, <insert>, <delete>, <update> 태그가 존재. 태그 이름에 상관없이 쿼리가 수행된다
+		> 즉, create table등을 사용하여야 하는 경우 등 해당 태그가 없더라도 어느 태그에서나 수행 가능하다. 
+	---------------------------------------------------------------------------------------------------------
+>> lec 19 1:16:00 
  6) 게시물 검색
 
 
