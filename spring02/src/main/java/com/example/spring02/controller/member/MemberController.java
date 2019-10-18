@@ -53,4 +53,9 @@ public class MemberController {
 		mav.addObject("message","logout");
 		return mav;
 	}
+	
+	@RequestMapping("address.do")
+	public String address() {
+		return "member/join";
+	}
 }

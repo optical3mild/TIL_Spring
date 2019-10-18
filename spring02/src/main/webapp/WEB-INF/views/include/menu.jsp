@@ -6,6 +6,7 @@
 	<tr>
 		<td>
 			<a href="${path }">Home</a>	|	
+			<a href= "${path}/member/address.do">도로명 주소</a>	|	
 			<a href="${path }/memo/list.do">메모장</a>	|	
 			<a href="${path}/board/list.do">게시판</a>	|	
 			<a href="${path }/upload/uploadForm">업로드테스트</a>	|

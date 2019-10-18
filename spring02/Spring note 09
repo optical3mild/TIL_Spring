@@ -1558,3 +1558,44 @@ lec 19~
   			- #{} : 파라미터가 String 형태로 들어와 '값'의 형태가 된다.
 
 >> lec 19 종료.
+
+lec20 ~
+
+15. 도로명 주소
+
+ 1) 도로명 주소 사이트
+ 	- 행정자치부 http://www.juso.go.kr
+ 	- 개발자 센터에서 api신청 가능 (개발자센터 > 오픈api > api신청하기)
+ 		: http://www.juso.go.kr/addrlink/devAddrLinkRequestUse.do?menu=main&cPath=99JA
+ 	- 규칙에 맞게 url 요청 --> 해당 도로명주소 리턴
+
+ 2) 우편번호, 주소 서비스 방법
+  1> 직접구축
+	- 주소DB제공 > 도로명주소DB 다운로드 : DB를 다운로드 받아 활용. EXCEL에서 읽을 수 있는 파일형식
+	- DB서버와 테이블을 미리 준비, 받은 DB를 import하여 사용
+	- 텍스트 파일을 엑셀로 읽어 (구분자|) csv로 변환한 후 필요한 컬럼만 선택한 후 저장
+	- import할 테이블을 미리 생성한 후 SQL Developer등 프로그램에서 import하여 테이블로 저장
+	
+	--> 개발시간이 오래걸림, 주기적 DB업데이트 필요
+
+>> lec20 27:00 ~	
+  2> API사용
+  	- 다음 API : http://postcode.map.daum.net/guide
+  	- 가이드 중 "사용자가 선택한 값 이용하기" 항목의 "예제코드보기" : js function 사용
+  	
+ 3) API사용 예제
+ 	- url로 요청하여 주소리턴값을 받는다.
+  1> menu.jsp : <a href= "${path}/member/address.do">도로명 주소</a>
+  
+  2> MemberController에 method추가 : 화면이동
+	  --------------------------------------------------------------------------------------------------------
+	  	@RequestMapping("address.do")
+		public String address() {
+			return "member/join";
+		}
+	  --------------------------------------------------------------------------------------------------------
+
+  3> join.jsp : form을 생성하고, 예제코드의 javascript function을 사용
+  
+lec20 37:00
+> note 10으로...
