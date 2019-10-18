@@ -1,0 +1,127 @@
+lec20 37:00 ~
+
+16. Spring boot
+	- spring legacy project에 비해 설정이 간소화됨.
+	- 톰캣이 포함되어 서버 설정이 간소화 됨.
+ 
+ 1) Spring Starter Project생성
+ 	- Name: 프로젝트 이름(spring03_boot)
+ 	- Artifact: spring03_boot 
+
+	- Boot Version : 최신버전
+	- SQL : JDBC, MyBatis, MySQL체크
+	- Template Engines : Thymeleaf 체크
+	- Web : Web체크
+	
+ 2) Spring boot 프로젝트의 실행 방법
+ 	- 시작클래스 : 프로젝트 이름 + Application.java
+ 	- tomcat이 내장되어 있음
+ 	- Run as Spring Boot App
+ 	- 기존에 실행중인 톰캣은 중지시키고 실행시켜야 함	
+
+ 3) 템플릿 엔진
+ 	- spring boot application에서는 jsp대신 template을 사용하는 것을 권장하고 있음.
+ 	- spring boot 에서 사용가능한 template 중 Thyme leaf사용
+ 	- template : jsp도 일종의 템플릿(jsp를 실행시키면 html이 결과물로 출력됨)
+ 	- 웹 템플릿 엔진 : 스프링 MVC와의 통합 모듈을 제공하며, 애플리케이션에서 jsp로 만든 기능들을 완전히 대체
+ 	
+ 4) jsp를 뷰로 사용하는 방법
+ 	- jsp를 사용하기 위해서는 추가 작업이 필요함
+ 		> src/main에 webapp디렉토리 추가
+ 		> webapp밑에 WEB-INF, views 디렉토리 추가
+ 		> application.properties 설정 (스프링 설정파일)
+ 		> pom.xml에서 thymeleaf라이브러리를 주석처리
+ 		
+ 5) 설정 + 프로젝트 실행
+ 	- 디렉토리 구조가 spring legacy project와 다름
+ 	- pom.xml이 간소화됨
+ 	- 웹브라우저에서 실행 : 서버를 실행하고 웹브라우저에서 주소를 입력하여 접속
+ 	
+  1> pom.xml : lec20 50:00부분참조
+	- <dependencies> 교체
+		------------------------------------------------------------------------------------------------------
+		<!-- 저장소 추가 (ojdbc6를 다운로드하기 위한 저장소) -->
+		<repositories>
+			<repository>
+				<id>codelds</id>
+				<url>https://code.lds.org/nexus/content/groups/main-repo</url>
+			</repository>
+		</repositories>
+		
+		<dependencies>
+			<!-- @Inject -->
+			<dependency>
+				<groupId>javax.inject</groupId>
+				<artifactId>javax.inject</artifactId>
+				<version>1</version>
+			</dependency>
+			
+			...
+			
+			<!-- spring boot auto restart(설정, 클래스가 바뀌면 auto restart) -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-devtools</artifactId>
+				<optional>true</optional>
+			</dependency>
+
+			<!-- jsp라이브러리 -->
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-jasper</artifactId>
+				<scope>provided</scope>
+			</dependency>
+			
+			<!-- jstl 라이브러리 -->
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>jstl</artifactId>
+			</dependency>
+
+			<!-- 이번에는 사용x -->
+			<!-- 오라클 라이브러리 : 메이븐 저장소에 없음. 저장소 추가-->
+			<dependency>
+				<groupId>com.oracle</groupId>
+				<artifactId>ojdbc6</artifactId>
+				<version>11.2.0.3</version>
+			</dependency>
+
+			
+		<dependencies>
+		------------------------------------------------------------------------------------------------------
+
+  2> templates/application.properties : DB연결 설정, 서버포트 설정, jsp사용 설정, 에러페이지 설정 등
+  	- 에러페이지 설정이 없으면 에러 발생 시 Whitelabel Error Page가 화면에 나타난다
+  
+  3> Spring03BootApplication.java (시작클래스)
+  	- 프로젝트 생성 시 시작클래스 자동생성.
+  	- 시작클래스 이름 : 프로젝트 이름 + Application.java
+  	- Run as Spring Boot App으로 실행
+  	
+  4> HelloController작성 : com.example.spring03_boot.controller
+  	- 코드 작성방식은 동일(어노테이션 등..)
+  	
+  5> jsp로 view 작성
+  	- 디렉토리 추가하여 jsp생성 : src/main/webapp/WEB-INF/views/hello.jsp
+  	
+  6> jsp사용을 위해 pom.xml에서 thymeleaf 라이브러리 주석처리
+  	- jsp와 thymeleaf는 동시에 사용 불가.
+  	
+  7> 웹 브라우저에서 실행
+  	- 주소창에 url을 입력하여 실행(컨텍스트 패스는 입력하지 않음) : http://localhost/hello.do
+
+>> lec20 종료
+
+
+
+
+
+
+
+
+
+
+
+
+
+
