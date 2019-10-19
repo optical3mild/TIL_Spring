@@ -111,6 +111,265 @@ lec20 37:00 ~
   	- 주소창에 url을 입력하여 실행(컨텍스트 패스는 입력하지 않음) : http://localhost/hello.do
 
 >> lec20 종료
+>> lec21 ~
+
+ 6) 스프링 부트 DB연동
+  1> 방명록 table
+  	Oracle =============================================================================================
+	  	create table guestbook(
+	  		idx number not null primary key,
+	  		name varchar2(50) not null,
+	  		email varchar2(50) not null,
+	  		passwd varchar2(50) not null,	-- 수정/삭제를 위한 비밀번호
+	  		content varchar2(4000) not null,
+	  		post_date date default sysdate
+	  	);
+	  	
+	  	-- 시퀀스 만들기
+	  	create sequence guestbook_seq
+	  	start with 1
+	  	increment by 1
+	  	nomaxvalue
+	  	nochache	--캐쉬를 사용하지 않음
+	  	
+	  	insert into guestbook (idx, name, email, passwd, content) 
+	  		values (guestbook_seq.nextval, 'kim', 'kim@nate.com', '1234', '방명록');
+  	====================================================================================================
+  	- 캐쉬를 사용하지 않음
+  		> 캐쉬를 사용할 경우, 미리 여러개를 만들어서 서버에 올림
+  		> 서버가 다운될 경우, 재시작 되었을 때 미리 만들었던 시퀀스 번호 이후로 번호가 생성 = 중간 번호 사라짐
+  		
+  	MySql =============================================================================================
+	  	create table guestbook(
+	  		idx int not null primary key auto_increment,
+	  		name varchar(50) not null,
+	  		email varchar(50) not null,
+	  		passwd varchar(50) not null,
+	  		content varchar(4000) not null,
+	  		post_date datetime default now()
+	  	);
+	  	
+	  	insert into guestbook (idx, name, email, passwd, content) 
+	  		values ((select ifnull(max(idx)+1,1) from guestbook a), 'kim', 'kim@nate.com', '1234', '방명록');
+  	====================================================================================================
+
+  2> 코드 작성 : 기초작업 + 목록보여주기 (패키지, java코드 작성 + list()메소드)
+  	- 스프링에서 관리하여야 하는 빈(컨트롤러/서비스/DAO등)은 처음 생성되어 있던 기본 패키지에 존재하여야 인식된다.
+  	- com.example.spring03_boot.model.dto : GuestbookDTO.java
+  	
+  	- Mybaits활용 : Interface로 mapper.xml 대체 - interface에 @Select("sql쿼리") 작성
+  		> com.example.spring03_boot.model.dao : GuestbookDAO.java - list();
+  			================================================================================================
+			// MyBatis interface mapper (SQL 명령어가 들어간 코드)
+			public interface GuestbookDAO {
+				
+				@Select("select * from guestbook order by idx desc")
+				public List<GuestbookDTO> list();
+			}
+  			================================================================================================
+  			- 인터페이스는 원래 인스턴스를 생성할 수 없으나, @Select어노테이션이 있어 내부적으로 처리하여 리턴.
+  	
+  	- com.example.spring03_boot.service : GuestbookService.java, GuestbookServiceImpl.java - list()
+  		====================================================================================================
+		@Service //service bean으로 등록
+		public class GuestbookServiceImpl implements GuestbookService {
+		
+			@Inject
+			GuestbookDAO guestbookDao;
+			
+			@Override
+			public List<GuestbookDTO> list() {
+				return guestbookDao.list();
+			}
+		...
+  		====================================================================================================
+		> DAO interface호출
+		 - 인터페이스는 원래 인스턴스를 생성할 수 없으나, @Select어노테이션이 있어 내부적으로 처리하여 리턴.
+		 
+	- com.example.spring03_boot.controller : GuestbookController.java - list.do
+		====================================================================================================
+		@Controller // controller bean으로 등록
+		public class GuestbookController {
+			
+			@Inject // 서비스 빈 inject
+			GuestbookService guestbookService;
+			
+			@RequestMapping("list.do")
+			public ModelAndView list(ModelAndView mav) {
+				mav.setViewName("list");	// view의 이름
+				List<GuestbookDTO> list = guestbookService.list();
+				mav.addObject("list", list);	// view에 전달할 데이터
+				return mav; // view로 이동
+			}
+		}
+		====================================================================================================
+
+	- 시작클래스 추가설정 : Spring03BootApplication.java
+		> mapper 설정
+			- 의존관계: DataSource --> SqlSessionFactory --> SqlSessionTemplate --> SqlSession
+			- Spring Legacy Project : root-context.xml에 <mybatis-spring:scan base-package="...">설정
+				> DataSource bean
+					- id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+					- 드라이버 클래스, DB연결 설정정보
+				> SqlSessionFactory bean
+					- id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"
+					- datasource를 참조, mapper 파일 위치, mybatis설정파일 위치 정보
+				> SqlSession bean
+					- id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate"
+					- SqlSessionTemplate가 SqlSession생성
+					- <constructor-arg>태그로 sqlSessionFactory 참조 설정
+						<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory" />
+				
+			- Spring boot : 시작클래스에서 코드로 설정 @MapperScan("com.example.spring03_boot.model")
+			================================================================================================
+			// 스프링 부트 애플리케이션 빈 (시작클래스)
+			@SpringBootApplication
+			// mapper 자동스캔
+		>>	@MapperScan("com.example.spring03_boot.model")
+			public class Spring03BootApplication {
+			
+				public static void main(String[] args) {
+					SpringApplication.run(Spring03BootApplication.class, args);
+				}
+				
+				// javax.sql.DataSource
+				// 의존관계: DataSource --> SqlSessionFactory --> SqlSessionTemplate --> SqlSession
+				@Bean //자바코드로 Bean을 등록
+				public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+					SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+					
+					// 데이터 소스 설정(application.properties 참조)
+		>>			bean.setDataSource(dataSource);
+					
+		>>			// xml mapper를 사용할 경우 아래 코드 추가
+					// import org.springframework.core.io.Resource;
+					// Resource[] res = new PathMatchingResourcePatternResolver()
+					// .getResources("classpath:mappers/*Mapper.xml");
+					// bean.setMapperLocations(res);
+					
+					return bean.getObject();
+				}
+				
+				@Bean
+				public SqlSessionTemplate sqlSession(SqlSessionFactory factory) {
+					return new SqlSessionTemplate(factory);
+				}
+			}
+			================================================================================================
+			> @Bean SqlSession, SqlSessionFactory : mybatis에서 SqlSession을 생성하여 호출하므로 추가 설정
+				- 인터페이스 mapper / xml mapper 두가지 모두 여기서 설정.
+			> 데이터 소스 설정 : application.properties
+	
+  3> 뷰 작성 : 목록화면
+  	- 뷰 기본 디렉토리 : src/main/resources
+  		> static : 정적요소들 = html(변동없는 고정문서), js, css, image
+  		> templates : 동적요소들 (*.html : 확장자는 html이나 서버의 리턴에 따라 내용이 변동됨)
+  		--> 방명록 목록 = db값에 따라 화면내용이 바뀜 = 동적요소 --> templates에 생성
+	- 타임리프 활성화
+		> application.properties에서 jsp설정 주석처리
+		> pom.xml에서 thymeleaf 라이브러리 활성화
+
+	- templates/hello.html 작성
+		---------------------------------------------------------------------------------------------------
+		<!DOCTYPE html>
+	>>	<html xmlns:th="http://www.thymeleaf.org">
+		<head>
+	>>	<meta charset="UTF-8" />
+		<title>Insert title here</title>
+		</head>
+		<body>
+	>>	<h2 th:text="${message}"></h2>
+		</body>
+		</html>
+		---------------------------------------------------------------------------------------------------
+		> xml namespace(식별자)를 지정하여 문서규격 정의
+			- xml규칙을 정확히 지켜야 함 (단독태그 허용 x = 여는태그, 닫는태그 둘다 작성필요.)
+		> xml namespace 지정 : th= thymeleaf에 대한 namespace
+		> th: 타임리프 태그의 요소
+		> th:text="타임리프 변수" 변수값을 텍스트로 출력함
+
+	- static/css/my.css
+	- static/js/test.js
+	- templates/error.html
+	- templates/include/header.html
+		----------------------------------------------------------------------------------------------------
+		<!-- 타임리프의 코드조각 -->
+		<head th:fragment="header">
+			<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+			<link rel="stylesheet" type="text/css" th:href="@{/css/my.css}" />
+		</head>
+		----------------------------------------------------------------------------------------------------
+		> th:fragment="header" : 해당문서는 다른 문서의 head에 일부분으로 추가되는 것을 표시
+		> th:href="@{/css/my.css} : @=리소스, {/css/my.css}=static/css/my.css
+		
+	- application.properties
+		> custom error page : 에러 발생 시 사용자 정의 페이지로 이동
+			- server.error.whitelabel.enabled=false : 기본페이지 사용옵션 끄기
+		
+		> thymeleaf auto refresh : 타임리프 템플릿의 내용이 바뀌면 서버재시작 필요, 옵션으로 자동설정
+			- spring.thymeleaf.cache=false : 캐쉬설정을 끄면 html템플릿이 바뀌어도 서버 재시작 필요x
+
+	- 방명록 목록화면 : templates/list.html
+		======================================================================================================
+		<!DOCTYPE html>
+		<html xmlns:th="http://www.thymeleaf.org">
+		<head>
+		<meta charset="UTF-8" />
+		
+		<!-- include에 필요 -->
+		<!-- th:include="디렉토리/페이지::프래그먼트(html 코드조각) 이름" 
+			th:remove="tag" 프래그먼트의 태그(바깥쪽 <head>) 제거 -->
+		<meta th:include="include/header::header" th:remove="tag"></meta>	
+			
+		<title>Insert title here</title>
+		
+		<script th:src="@{/js/test.js}"></script>
+		<script>
+		$(function(){
+			test();
+		})
+		</script>
+		
+		</head>
+		<body>
+		
+		<span th:text="${message}"></span>
+		
+		<!-- 정적인 요소 : @{디렉토리} static디렉토리 -->
+		<img th:src="@{images/apple.jpg}" width="50px" height="50px" />
+		
+		<div>방명록</div>
+		
+		<a href="write.do">방명록 작성</a>
+		<table border="1">
+			<tr>
+				<th>번호</th>
+				<th>이름</th>
+				<th>내용</th>
+				<th>날짜</th>
+			</tr>
+			
+			<!-- 개별변수 : 집합 -->
+			<!-- 타임리프 패키지 사용 : dates.format(날짜데이터, 출력형식) -->
+			<!-- href="view.do?idx=3" th:href="@{}" @{정적인 텍스트(변수=값)} -->
+			<tr th:each="row:${list}">
+				<td><span th:text="${row.idx}"></span></td>
+				<td><span th:text="${row.name}"></span></td>
+				<td>
+					<a th:href="@{view.do(idx=${row.idx})}">
+						<span th:text="${row.content}"></span>
+					</a>
+				</td>
+				<td><span th:text="${#dates.format(row.post_date,'yyyy-MM-dd HH:mm:ss')}"></span></td>
+			</tr>
+		</table>
+		
+		</body>
+		</html>
+		======================================================================================================
+	
+
+
 
 
 

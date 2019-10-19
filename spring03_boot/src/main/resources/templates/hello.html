@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<!-- xml namespace(식별자)를 지정하여 문서규격 정의 : 
+	xml규칙을 정확히 지켜야 함 (단독태그 허용 x = 여는태그, 닫는태그 둘다 존재..) -->
+<!-- xml namespace 지정 : th= thymeleaf에 대한 namespace -->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<!-- <meta charset="UTF-8"> 닫는 태그 없음 : 아래와 같이 변경 -->
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+</head>
+<body>
+<!-- th: 타임리프 태그의 요소 -->
+<!-- th:text="타임리프 변수" 변수값을 텍스트로 출력함 -->
+<h2>타임리프 템플릿 사용버전</h2>
+<h2 th:text="${message}"></h2>
+</body>
+</html>

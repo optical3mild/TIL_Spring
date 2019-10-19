@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+
+<!-- include에 필요 -->
+<!-- th:include="디렉토리/페이지::프래그먼트(html 코드조각) 이름" 
+	th:remove="tag" 프래그먼트의 태그 제거 -->
+<meta th:include="include/header::header" th:remove="tag"></meta>	
+	
+<title>Insert title here</title>
+
+<script th:src="@{/js/test.js}"></script>
+<script>
+/*
+$(function(){
+	test();
+})
+*/
+</script>
+
+</head>
+<body>
+
+<span th:text="${message}"></span>
+
+<!-- 정적인 요소 : @{디렉토리} static디렉토리 -->
+<img th:src="@{images/apple.jpg}" width="50px" height="50px" />
+
+<div>방명록</div>
+
+<a href="write.do">방명록 작성</a>
+<table border="1">
+	<tr>
+		<th>번호</th>
+		<th>이름</th>
+		<th>내용</th>
+		<th>날짜</th>
+	</tr>
+	
+	<!-- 개별변수 : 집합 -->
+	<!-- 타임리프 패키지 사용 : dates.format(날짜데이터, 출력형식) -->
+	<!-- href="view.do?idx=3" th:href="@{}" @{정적인 텍스트(변수=값)} -->
+ 	<tr th:each="row:${list}">
+		<td><span th:text="${row.idx}"></span></td>
+		<td><span th:text="${row.name}"></span></td>
+		<td>
+			<a th:href="@{view.do(idx=${row.idx})}">
+				<span th:text="${row.content}"></span>
+			</a>
+		</td>
+		<td><span th:text="${#dates.format(row.post_date,'yyyy-MM-dd HH:mm:ss')}"></span></td>
+	</tr>
+
+</table>
+
+</body>
+</html>
