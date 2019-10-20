@@ -368,18 +368,127 @@ lec20 37:00 ~
 		</html>
 		======================================================================================================
 	
+lec 21 종료
+lec 22 ~
+  4> 글쓰기
+  	- controller : write.do - 해당 템플릿으로 화면이동 / insert.do
+  		======================================================================================================
+		@RequestMapping("write.do")
+		public String write() {
+			return "write";
+		}
+		
+		@RequestMapping("insert.do")
+		public String insert(@ModelAttribute GuestbookDTO dto) {
+			guestbookService.insert(dto);
+			return "redirect:/list.do"; //화면으로 이동
+		}
+  		======================================================================================================
+  		> @ModelAttribute : 생략가능. form으로 전달받은 값을 dto에 넣어 매개변수로 전달.
+  				--> (form의 name들과 필드명칭 동일하게 작성 필요)
+  		
+	- write.html(입력 form) 작성
+		> thymeleaf사용 : 단독태그 사용하지 않도록 주의
+	
+	- DAO : interface에 method와 쿼리등록
+		> 매개변수로 GuestbookDTO를 전달받아 쿼리 실행
+		------------------------------------------------------------------------------------------------------
+		@Insert("insert into guestbook (idx, name, email, passwd, content)" + 
+			"values ((select ifnull(max(idx)+1,1) from guestbook a), #{name}, #{email}, #{passwd}, #{content})")
+		public void insert(GuestbookDTO dto);
+		------------------------------------------------------------------------------------------------------
+	- service : insert()
+	
+  5> 상세화면
+  	- list.html에서 각 제목에 hyperlink삽입
+  		> <a th:href="@{view.do(idx=${row.idx})}">
+  			- th: ==> 타임리프 명령어
+  			- @{} ==> 정적인 요소
+  			- view.do(변수=값) : http://localhost/view.do?idx=3 의 형식으로 요청
 
+	- controller : view.do
+		-----------------------------------------------------------------------------------------------------
+		@RequestMapping("view.do")
+		public ModelAndView view(int idx, ModelAndView mav) {
+			// 이동할 뷰의 이름
+			mav.setViewName("detail");
+			// 뷰에 전달할 데이터
+			mav.addObject("dto", guestbookService.view(idx));
+			return mav; // detail.html로 데이터를 전달하고 이동
+		}
+		-----------------------------------------------------------------------------------------------------
+		
+	- service : view() - dao 호출하여 결과 리턴
+	- DAO : view()와 mapper작성
+		-----------------------------------------------------------------------------------------------------
+		@Select("select * from guestbook where idx=#{idx}")
+		public GuestbookDTO view(int idx);
+		-----------------------------------------------------------------------------------------------------
 
+	- detail.html
+		-----------------------------------------------------------------------------------------------------
+		<form name="form1">
+			<table border="1" style="width:600px;">
+				<tr>
+					<td>이름</td>
+					<td><input name="name" th:value="${dto.name}" /></td>
+				</tr>
+				<tr>
+					<td>이메일</td>
+					<td><input name="email" th:value="${dto.email}" /></td>
+				</tr>
+				<tr>
+					<td>비밀번호</td>
+					<td><input type="password" name="passwd" /></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<textarea name="content" rows="5" cols="60" th:inline="text">[[${dto.content}]]</textarea>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" align="center">
+						<input type="hidden" name="idx" th:value="${dto.idx}" />
+						<input type="button" value="수정" id="btnUpdate" />
+						<input type="button" value="삭제" id="btnDelete" />
+					</td>
+				</tr>
+			</table>
+		</form>
+		-----------------------------------------------------------------------------------------------------
+		> th:value : 전달받은 값을 input tag에 표시
+		> th:inline="text" + [[${}]] : 전달받은 값(${}안의 값)을 tag사이에 text로 표시
+		> textarea에는 value 속성이 없다.
 
+  6> 수정/삭제 기능
+  	- 비밀번호를 확인하고 넘어가도록 수정필요.
+  	- detail.html에 script추가
+  	- controller : update.do, delete.do
+  		------------------------------------------------------------------------------------------------------
+		@RequestMapping("update.do")
+		public String update(GuestbookDTO dto) {
+			guestbookService.update(dto);	//레코드 수정
+			return "redirect:/list.do";		//목록으로 이동
+		}
+	
+		@RequestMapping("delete.do")
+		public String delete(int idx) {
+			guestbookService.delete(idx);	//레코드 삭제
+			return "redirect:/list.do";		//목록으로 이동
+		}
+  		------------------------------------------------------------------------------------------------------
+  		
+	- service : dao 호출, 매개값을 넘겨준다
+	- DAO : 메서드, 쿼리 작성
+		------------------------------------------------------------------------------------------------------
+		@Update("update guestbook set name=#{name}, email=#{email}, content=#{content} where idx=#{idx}")
+		public void update(GuestbookDTO dto);
+		
+		@Delete("delete from guestbook where idx=#{idx}")
+		public void delete(int idx);
+		------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
+lec 22 종료.
 
 
 

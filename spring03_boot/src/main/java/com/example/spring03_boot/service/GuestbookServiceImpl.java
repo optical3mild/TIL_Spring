@@ -22,26 +22,22 @@ public class GuestbookServiceImpl implements GuestbookService {
 
 	@Override
 	public void insert(GuestbookDTO dto) {
-		// TODO Auto-generated method stub
-		
+		guestbookDao.insert(dto);
 	}
 
 	@Override
 	public GuestbookDTO view(int idx) {
-		// TODO Auto-generated method stub
-		return null;
+		return guestbookDao.view(idx);
 	}
 
 	@Override
 	public void update(GuestbookDTO dto) {
-		// TODO Auto-generated method stub
-		
+		guestbookDao.update(dto);
 	}
 
 	@Override
 	public void delete(int idx) {
-		// TODO Auto-generated method stub
-		
+		guestbookDao.delete(idx);
 	}
 
 }
