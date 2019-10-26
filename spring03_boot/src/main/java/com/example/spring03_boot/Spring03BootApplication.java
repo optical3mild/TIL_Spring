@@ -30,9 +30,9 @@ public class Spring03BootApplication {
 		bean.setDataSource(dataSource);
 		
 		// xml mapper를 사용할 경우 아래 코드 추가
-		// import org.springframework.core.io.Resource;
-		// Resource[] res = new PathMatchingResourcePatternResolver()
-		// .getResources("classpath:mappers/*Mapper.xml");
+		// Resource 클래스 import시 org.springframework.core.io.Resource;
+		// classpath => src/main/java/를 의미. classpath:mappers/*Mapper.xml --> 해당 경로 이하의 mapper파일
+		// Resource[] res = new PathMatchingResourcePatternResolver().getResources("classpath:mappers/*Mapper.xml");
 		// bean.setMapperLocations(res);
 		
 		return bean.getObject();

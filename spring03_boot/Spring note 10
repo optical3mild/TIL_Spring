@@ -3,18 +3,29 @@ lec20 37:00 ~
 16. Spring boot
 	- spring legacy project에 비해 설정이 간소화됨.
 	- 톰캣이 포함되어 서버 설정이 간소화 됨.
+	- web.xml, servlet-context.xml, root-context.xml이 포함되어 설정 간소화
  
  1) Spring Starter Project생성
+  1> 프로젝트 작성 form
+ 	- service url : 스프링 공식사이트. 라이브러리 파일 다운로드 등에 참조됨
+ 		> maven라이브러리를 좀더 안정적으로 사용가능 
  	- Name: 프로젝트 이름(spring03_boot)
- 	- Artifact: spring03_boot 
-
+ 	- group : 도메인(회사, com.example)
+ 	- Artifact: 프로젝트 이름(spring03_boot)
+ 	
+  2> 의존관계 생성 선택
+  	- pom.xml에 기입 또는 처음 생성시 화면에서 라이브러리 선택가능
+  	- 스프링 부트 버전, 라이브러리 선택
 	- Boot Version : 최신버전
 	- SQL : JDBC, MyBatis, MySQL체크
 	- Template Engines : Thymeleaf 체크
+		> jsp기술에 종속되지 않도록 template engine사용 권장 (- *spring은 안드로이드, 자바, 닷넷 등에서 사용)
+		> Template Engine : 프로그래밍 언어에 관계없이 html틀을 만들어내는 것
 	- Web : Web체크
 	
  2) Spring boot 프로젝트의 실행 방법
  	- 시작클래스 : 프로젝트 이름 + Application.java
+ 		> web project지만 java로 구동
  	- tomcat이 내장되어 있음
  	- Run as Spring Boot App
  	- 기존에 실행중인 톰캣은 중지시키고 실행시켜야 함	
@@ -28,7 +39,7 @@ lec20 37:00 ~
  4) jsp를 뷰로 사용하는 방법
  	- jsp를 사용하기 위해서는 추가 작업이 필요함
  		> src/main에 webapp디렉토리 추가
- 		> webapp밑에 WEB-INF, views 디렉토리 추가
+ 		> webapp밑에 WEB-INF(필수 + 고정), views(변동가능) 디렉토리 추가
  		> application.properties 설정 (스프링 설정파일)
  		> pom.xml에서 thymeleaf라이브러리를 주석처리
  		
@@ -38,7 +49,7 @@ lec20 37:00 ~
  	- 웹브라우저에서 실행 : 서버를 실행하고 웹브라우저에서 주소를 입력하여 접속
  	
   1> pom.xml : lec20 50:00부분참조
-	- <dependencies> 교체
+	- <dependencies> 교체 : 기본옵션에 없는 라이브러리들 추가
 		------------------------------------------------------------------------------------------------------
 		<!-- 저장소 추가 (ojdbc6를 다운로드하기 위한 저장소) -->
 		<repositories>
@@ -85,12 +96,12 @@ lec20 37:00 ~
 				<artifactId>ojdbc6</artifactId>
 				<version>11.2.0.3</version>
 			</dependency>
-
 			
 		<dependencies>
 		------------------------------------------------------------------------------------------------------
 
-  2> templates/application.properties : DB연결 설정, 서버포트 설정, jsp사용 설정, 에러페이지 설정 등
+  2> templates/application.properties
+  	- DB연결 설정, 서버포트 설정, jsp사용 설정(view resolver), jsp auto restart, 에러페이지 설정 등
   	- 에러페이지 설정이 없으면 에러 발생 시 Whitelabel Error Page가 화면에 나타난다
   
   3> Spring03BootApplication.java (시작클래스)
@@ -134,9 +145,12 @@ lec20 37:00 ~
 	  	
 	  	insert into guestbook (idx, name, email, passwd, content) 
 	  		values (guestbook_seq.nextval, 'kim', 'kim@nate.com', '1234', '방명록');
+	  		
+		-- 비밀번호 체크(맞으면 1, 틀리면 0이 리턴됨)
+		select count(*) from guestbook where idx=1 and passwd='1234'
   	====================================================================================================
   	- 캐쉬를 사용하지 않음
-  		> 캐쉬를 사용할 경우, 미리 여러개를 만들어서 서버에 올림
+  		> 캐쉬를 사용할 경우, 미리 여러개를 만들어서 서버에 올림 --> 발급 속도가 빠름
   		> 서버가 다운될 경우, 재시작 되었을 때 미리 만들었던 시퀀스 번호 이후로 번호가 생성 = 중간 번호 사라짐
   		
   	MySql =============================================================================================
@@ -151,6 +165,9 @@ lec20 37:00 ~
 	  	
 	  	insert into guestbook (idx, name, email, passwd, content) 
 	  		values ((select ifnull(max(idx)+1,1) from guestbook a), 'kim', 'kim@nate.com', '1234', '방명록');
+	  		
+	  	/* 비밀번호 체크(맞으면 1, 틀리면 0이 리턴됨) */
+		select count(*) from guestbook where idx=#{idx} and passwd=#{passwd}
   	====================================================================================================
 
   2> 코드 작성 : 기초작업 + 목록보여주기 (패키지, java코드 작성 + list()메소드)
@@ -167,7 +184,10 @@ lec20 37:00 ~
 				public List<GuestbookDTO> list();
 			}
   			================================================================================================
-  			- 인터페이스는 원래 인스턴스를 생성할 수 없으나, @Select어노테이션이 있어 내부적으로 처리하여 리턴.
+  			- 인터페이스는 원래 인스턴스를 생성할 수 없으나, @Select어노테이션이 있어 호출 시 내부적으로 처리하여 리턴.
+  			- 완성되지 않은 메서드지만, 내용 자체는 어노테이션으로 정의된 쿼리를 실행하는 것
+  			- 해당 설정은 시작클래스의 @MapperScan이 설정되어 있으므로 사용가능.
+  			- @MapperScan으로 정의된 위치의 모든 클래스를 검색하여 서버가 시작될 때 메모리에 객체를 올려놓고 시작
   	
   	- com.example.spring03_boot.service : GuestbookService.java, GuestbookServiceImpl.java - list()
   		====================================================================================================
@@ -242,7 +262,9 @@ lec20 37:00 ~
 		>>			bean.setDataSource(dataSource);
 					
 		>>			// xml mapper를 사용할 경우 아래 코드 추가
-					// import org.springframework.core.io.Resource;
+					// Resource 클래스 import시 org.springframework.core.io.Resource;
+					// classpath => src/main/java/를 의미. classpath:mappers/*Mapper.xml 
+					//		--> 해당 경로 이하의 mapper파일
 					// Resource[] res = new PathMatchingResourcePatternResolver()
 					// .getResources("classpath:mappers/*Mapper.xml");
 					// bean.setMapperLocations(res);
@@ -259,12 +281,13 @@ lec20 37:00 ~
 			> @Bean SqlSession, SqlSessionFactory : mybatis에서 SqlSession을 생성하여 호출하므로 추가 설정
 				- 인터페이스 mapper / xml mapper 두가지 모두 여기서 설정.
 			> 데이터 소스 설정 : application.properties
+			> @MapperScan으로 정의된 위치의 모든 클래스를 검색하여 서버가 시작될 때 메모리에 객체를 올려놓고 시작
 	
-  3> 뷰 작성 : 목록화면
+  3> thymeleaf로 뷰 작성 : 목록화면
   	- 뷰 기본 디렉토리 : src/main/resources
-  		> static : 정적요소들 = html(변동없는 고정문서), js, css, image
-  		> templates : 동적요소들 (*.html : 확장자는 html이나 서버의 리턴에 따라 내용이 변동됨)
-  		--> 방명록 목록 = db값에 따라 화면내용이 바뀜 = 동적요소 --> templates에 생성
+  		> static : 정적요소들 js, css, image
+  		> templates : 동적요소들 (*.html : 확장자는 html이나 태그에 따라 해석되어 html이 생성, 내용이 변동됨)
+  			--> 방명록 목록 = db값에 따라 화면내용이 바뀜 = 동적요소 --> templates에 생성
 	- 타임리프 활성화
 		> application.properties에서 jsp설정 주석처리
 		> pom.xml에서 thymeleaf 라이브러리 활성화
@@ -312,6 +335,7 @@ lec20 37:00 ~
 	- 방명록 목록화면 : templates/list.html
 		======================================================================================================
 		<!DOCTYPE html>
+		<!-- 타임리프 템플릿 페이지의 네임스페이스 -->
 		<html xmlns:th="http://www.thymeleaf.org">
 		<head>
 		<meta charset="UTF-8" />
@@ -367,7 +391,9 @@ lec20 37:00 ~
 		</body>
 		</html>
 		======================================================================================================
-	
+		> <a th:href="@{view.do(idx=${row.idx})}">
+			- href="view.do?idx=3" th:href="@{}" @{정적인 텍스트(변수=값)}
+			- view.do는 변하지 않고 idx= 뒤의 값만 변화
 lec 21 종료
 lec 22 ~
   4> 글쓰기
@@ -427,6 +453,11 @@ lec 22 ~
 
 	- detail.html
 		-----------------------------------------------------------------------------------------------------
+		<!-- 타임리프 템플릿 페이지의 네임스페이스 -->
+		<html xmlns:th="http://www.thymeleaf.org">
+		
+		...
+		
 		<form name="form1">
 			<table border="1" style="width:600px;">
 				<tr>
@@ -466,17 +497,27 @@ lec 22 ~
   	- controller : update.do, delete.do
   		------------------------------------------------------------------------------------------------------
 		@RequestMapping("update.do")
-		public String update(GuestbookDTO dto) {
+		public String update(@ModelAttribute GuestbookDTO dto) {
 			guestbookService.update(dto);	//레코드 수정
 			return "redirect:/list.do";		//목록으로 이동
 		}
 	
 		@RequestMapping("delete.do")
-		public String delete(int idx) {
+		public String delete(@RequestParam int idx) {
 			guestbookService.delete(idx);	//레코드 삭제
 			return "redirect:/list.do";		//목록으로 이동
 		}
   		------------------------------------------------------------------------------------------------------
+  		> @ModelAttribute : 생략가능
+  			- 파라미터로 넘겨 준 타입의 오브젝트를 자동으로 생성한다. 
+         	- 이때 @ModelAttribute가 지정되는 클래스는 beans 클래스라야 한다.
+			- 그리고 getter와 setter가 명명 규칙에 맞게 만들어져 있어야 한다.
+			- 생성된 오브젝트에(info) HTTP로 넘어 온 값들을 자동으로 바인딩한다. 
+			- url요청으로 넘어오는 값을 해당 DTO setter를 통해서 해당 멤버 변수에로 binding된다.
+			- @ModelAttribute 어노테이션이 붙은 객체가 자동으로 Model 객체에 추가되고 .jsp 뷰단까지 전달된다.
+			- 이상의 과정은 spring framework가 내부적으로 처리한다.
+
+  		> @RequestParam	: 생략가능, 하나이상 파라미터에서 사용가능. DefaultValue설정으로 null값 오류 방지(4**)
   		
 	- service : dao 호출, 매개값을 넘겨준다
 	- DAO : 메서드, 쿼리 작성
@@ -489,6 +530,7 @@ lec 22 ~
 		------------------------------------------------------------------------------------------------------
 
 lec 22 종료.
+lec 23~24 : 20,21,22와 중복내용
 
 
 
